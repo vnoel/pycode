@@ -1,7 +1,16 @@
-# Fonctions utiles pour l'analyse de donnees CALIOP
-# VN 2008-2010
-# LMDX/CNRS
+#!/usr/bin/env python
+# encoding: utf-8
 
+'''
+
+Module for reading CALIPSO lidar data files, level 1 and level 2.
+
+V. Noel 2008-2011
+LMD/CNRS
+
+'''
+
+# cannot use pytables since calipso is hdf4...
 from pyhdf.SD import SD
 from scipy.stats import nanmean
 from scipy.integrate import trapz
@@ -13,23 +22,21 @@ import os
 import socket
 import warnings
 
-# cannot use pytables since calipso is hdf4...
-
+# these should be in the same directory
 datapath = os.path.dirname(__file__) + '/staticdata/'
 lidar_alt = np.loadtxt(datapath+'lidaralt.asc')
 met_alt = np.loadtxt(datapath+'metalt.asc')
 
-
 # the following ranges have been calibrated more carefully for nighttime than daytime
-
 # maximum atb to consider for calibration in the 26-28 km range
 atb_max = {'ZN':1e-4, 'ZD':1}
 
 # maximum integrated atb for calibrationi in the 26-28 km range
 iatb_bounds = {'ZN':[1e-5, 8e-5], 'ZD':[-8e-3, 8e-3]}
 
-
 # server-dependent paths
+# these need to point to the path of CALIOP level 1 and level 2 data
+# they might be better in a config file...
 hostname = socket.gethostname()
 if hostname=='access.icare.univ-lille1.fr':
     l1dir = ('/DATA/LIENS/CALIOP/CAL_LID_L1.v3.01',)
@@ -217,6 +224,8 @@ def ncep_remap (var, lat, lon, latorb, lonorb):
 
 
 # Generic calipso file class
+# Use Cal1 and Cal2 classes instead
+
 class _Cal:
         
     # il faut faire un try de l'instantiation de Cal1 ou Cal2
