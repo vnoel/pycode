@@ -3,29 +3,48 @@
 
 '''
 
-MLS functions
-for MLS H2O files
+Module for reading MLS Level 2 file
+Supported products : H2O, HNO3
 
-V. Noel - Thu Jan 27 17:21:26 CET 2011
+V. Noel - Created on Thu Jan 27 17:21:26 CET 2011
+
 '''
 
 import tables
 
 class MLS(object):
     
+    '''
+    Generic parent class to read MLS objects.
+    Use product-specific classes instead.
+    Example usage:
+        m = MLS('MLS-Aura_L2GP-H2O_v02-23-c01_2010d238.he5', type='H2O')
+        lon, lat = m.coords()
+        levels = m.levels()
+        m.close()
+    '''
+    
     def __init__(self, filename, type):
         '''
         filename : name of the MLS file
-        type : for now, 'HNO3' or 'H2O'
+        type : product to read - supported products: 'HNO3', 'H2O'
         '''
+        
         self.h5 = tables.openFile(filename, mode='r')
         self.type = type
         self.swathnode = '/HDFEOS/SWATHS/'+self.type
         
     def close(self):
+        '''
+        close an opened MLS object.
+        '''
         self.h5.close()
         
     def coords(self):
+        '''
+        returns the coordinates of MLS profiles.
+        shape: ntime
+        '''
         geo = self.h5.getNode(self.swathnode, 'Geolocation Fields')
         lat = geo.Latitude.read()
         lon = geo.Longitude.read()
@@ -33,7 +52,8 @@ class MLS(object):
         
     def levels(self):
         '''
-        returns pressure levels
+        returns pressure levels of MLS profiles
+        shape: nlevels
         '''
         geo = self.h5.getNode(self.swathnode, 'Geolocation Fields')
         levels = geo.Pressure.read()
@@ -41,8 +61,8 @@ class MLS(object):
         
     def _L2gpValue(self):
         '''
-        returns data array in MLS level 2 file
-        shape (time, levels)
+        returns data product containing MLS profiles
+        shape: (ntime, nlevels)
         '''
         data = self.h5.getNode(self.swathnode, 'Data Fields')
         h2o = data.L2gpValue.read()
@@ -50,8 +70,8 @@ class MLS(object):
         
     def precision(self):
         '''
-        returns h2o precision
-        shape h2o_precision(time, levels)
+        returns MLS precision field
+        shape: (ntime, nlevels)
         '''
         data = self.h5.getNode(self.swathnode, 'Data Fields')
         precision = data.L2gpPrecision.read()
@@ -59,34 +79,54 @@ class MLS(object):
         
     def quality(self):
         '''
-        returns h2o quality
-        shape quality(time)
+        returns MLS quality field
+        shape: time
         '''
         data = self.h5.getNode(self.swathnode, 'Data Fields')
         precision = data.Quality.read()
         return precision
         
     def time(self):
+        '''
+        returns time for MLS profiles.
+        shape: ntime
+        '''
         geo = self.h5.getNode(self.swathnode, 'Geolocation Fields')
         time = geo.Time.read()
         return time
         
+class MLSH2O(MLS):
+    '''
+    Class to read MLS H2O products.
+    Example usage:
+        m = MLSH2O('MLS-Aura_L2GP-H2O_v02-23-c01_2010d238.he5')
+        lon, lat = m.coords()
+        levels = m.levels()
+        h2o = m.H2O()
+        m.close()
+    '''
+
+    def __init__(self, filename):
+        MLS.__init__(self, filename, 'H2O')
+
+    def H2O(self):
+        '''
+        return numpy array containing the H2O product from the MLS file.
+        shape: (ntime, nlevels)
+        '''
+        data = self._L2gpValue()
+        return data
+
         
 class MLSHNO3(MLS):
+    '''
+    Class to read MLS HNO3 products.
+    '''
 
     def __init__(self, filename):
         MLS.__init__(self, filename, 'HNO3')
 
     def HNO3(self):
         data =self._L2gpValue()
-        return data
-
-class MLSH2O(MLS):
-
-    def __init__(self, filename):
-        MLS.__init__(self, filename, 'H2O')
-
-    def H2O(self):
-        data = self._L2gpValue()
         return data
 
