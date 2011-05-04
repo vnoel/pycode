@@ -1,0 +1,2 @@
+lidaralt.asc contains the altitude, in km, of every CALIOP altitude level.
+metalt.asc contains the altitude, in km, of every ancillary product within CALIOP files.
