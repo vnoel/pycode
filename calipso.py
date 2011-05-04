@@ -10,7 +10,7 @@ LMD/CNRS
 
 '''
 
-# cannot use pytables since calipso is hdf4...
+# cannot use pytables since calipso files are hdf4.
 from pyhdf.SD import SD
 from scipy.stats import nanmean
 from scipy.integrate import trapz
@@ -22,7 +22,7 @@ import os
 import socket
 import warnings
 
-# these should be in the same directory
+# these should be in the same directory as the module
 datapath = os.path.dirname(__file__) + '/staticdata/'
 lidar_alt = np.loadtxt(datapath+'lidaralt.asc')
 met_alt = np.loadtxt(datapath+'metalt.asc')
@@ -49,7 +49,8 @@ else:
     # for level 2, look first in our own data, then on climserv data
     l2dir = ('/bdd/CFMIP/Lidar_L2', '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
 
-def l1_files (y, m, d, mask):
+def l1_files (y, m, d, mask='*'):
+    '''returns the list of available CALIOP L1 files matching a date and mask'''
     goodpath = '/'
     for l1d in l1dir:
         calpath = l1d + '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
@@ -59,10 +60,12 @@ def l1_files (y, m, d, mask):
     return files
 
 def l1_night_files (y, m, d):
+    '''returns the list of available CALIOP nighttime L1 files matching a date'''
     files = l1_files(y, m, d, '*ZN*')
     return files
 
 def l1_file_from_orbit (y, m, d, orbit):
+    '''returns full path to a CALIOP L1 orbit file'''
     files = l1_files(y, m, d, '*'+orbit+'*')
     if not files:
         return None
@@ -227,11 +230,11 @@ def ncep_remap (var, lat, lon, latorb, lonorb):
 # Use Cal1 and Cal2 classes instead
 
 class _Cal:
-        
-    # il faut faire un try de l'instantiation de Cal1 ou Cal2
-    # car hdf.SD balance une exception si le fichier n'existe pas.
-    # la bonne methode en python n'est pas d'empecher l'instantiation
-    # mais d'attrapper l'exception levee durant l'instantiation
+    
+    '''
+    Trying to open a non-existing CALIOP file gives an exception
+    '''
+
     def __init__(self, filename):
         warnings.simplefilter('ignore', DeprecationWarning)
         self.hdf = SD(filename)
@@ -254,8 +257,24 @@ class _Cal:
         self.hdf = None
 
 
-# classe pour level 1
 class Cal1(_Cal):
+    
+    '''
+    Class to process CALIOP Level 1 file.
+    Most of the reading function accept an argument navg which requests horizontal
+    averaging along the provided number of profiles.
+    example use:
+        
+        from calipso import Cal1
+        
+        c = Cal1('CAL_LID_L1-ValStage1-V3-01.2010-02-05T01-47-40ZN.hdf')
+        time = c.time(navg=15)
+        lon, lat = c.coords(navg=15)
+        atb = c.atb(navg=15)
+        ...
+        c.close()
+        
+    '''
 
     def _read_var(self, var, navg, idx=(0,-1)):
         '''
@@ -282,6 +301,12 @@ class Cal1(_Cal):
         return data
         
     def time(self, navg=30):
+        '''
+        Reads time for CALIOP profiles, averaged on navg
+        shape [nprof]
+        Example:
+            time = c.time(navg=15)
+        '''
         var = self.hdf.select('Profile_Time')
         time  = var[0:-1].squeeze()
         
@@ -291,21 +316,23 @@ class Cal1(_Cal):
             time2[i] = time[i * navg]
         return time2
 
-    # Coordoonees
     def coords (self, navg=30, idx=(0,-1)):
-        ''' lon, lat = read_coords (filename, navg)
-                lit les coordonnees profil calipso, moyennes sur navg'''
+        ''' 
+        Reads coordinates for CALIOP profiles, averaged on navg
+        shape [nprof]
+        Example:
+            lon, lat = c.coords(navg=15)
+        '''
         lat = self._read_var('Latitude', navg, idx=idx)
         lon = self._read_var('Longitude', navg, idx=idx)
 
         return lon, lat
 
     def find_profiles_in_lonlat_box (self, lonmin, lonmax, latmin, latmax):
-        ''' idx = find_profiles_in_lonlat_box (self, lonmin, lonmax, latmin, latmax)
-            Trouve les index min et max correspondant a une boite lon, lat dans un fichier CALIPSO.
-            Renvoie None si aucun profil n'est trouve.
-            Devrait marcher independemment avec les fichiers niveau 1 ou niveau 2.
-            '''
+        '''
+        Finds CALIOP profiles that fit in a lon,lat box
+        Returns None if no profile is found.
+        '''
         lon = hdf.select('Longitude').get()
         mask1 = (lon >= lonmin) & (lon < lonmax)
         if mask1.sum()==0:
@@ -320,93 +347,104 @@ class Cal1(_Cal):
         else:
             return idx[0], idx[-1]
 
-    def find_profiles_south_of (self, nlimit):
-        lat = hdf.select('Latitude').get()
-        ind = np.where(lat < nlimit)[0]
-        if np.size(ind)==0:
-            return None
-        else:
-            return ind[0], ind[-1]
-
-    # Data
-    
     def surface_elevation (self, navg=30, prof=None, idx=(0,-1)):
-        '''Lit elevation'''
+        '''
+        Reads the surface elevation from CALIOP file
+        shape [nprof]
+        '''
         elev = self._read_var('Surface_Elevation', navg, idx=idx)
         if prof is not None:
             elev = elev[prof,:]
         return elev
 
     def perp (self, navg=30, prof=None, idx=(0,-1)):
-        '''perp = read_perp (filename, navg)'''
+        '''
+        Reads the perpendicular signal from CALIOP file
+        shape [nprof, nz]
+        '''
         perp = self._read_var('Perpendicular_Attenuated_Backscatter_532', navg, idx=idx)
         if prof:
             perp = perp[prof,:]
-
         return perp
 
     def atb (self, navg=30, prof=None, idx=(0,-1)):
-        ''' atb = cal_read_atb (filename, navg)
-                lit les donnees calipso latitude, longitude et atb'''
+        '''
+        Reads the Attenuated Total Backscatter 532nm from CALIOP file
+        shape [nprof, nz]
+        '''
         atb = self._read_var('Total_Attenuated_Backscatter_532', navg, idx=idx)
         if prof:
             atb = atb[prof,:]
         return atb
 
     def atb1064 (self, navg=30, prof=None, idx=(0,-1)):
-        ''' atb = cal_read_atb (filename, navg)
-                lit les donnees calipso latitude, longitude et atb'''
+        '''
+        Reads the Attenuated Total Backscatter 1064nm from CALIOP file
+        '''
         atb = self._read_var('Attenuated_Backscatter_1064', navg, idx=idx)
         if prof:
             atb = atb[prof,:]
         return atb
 
     def pressure (self, navg=30, idx=(0,-1)):
-        ''' p = read_pressure (filename, navg)
-            lit les donnees calipso pressure'''
+        '''
+        Reads the ancillary pressure field from CALIOP file
+        shape [nprof, nlevels]
+        '''
         p = self._read_var("Pressure", navg, idx=idx)
         return p
 
     def mol (self, navg=30, prof=None,idx=(0,-1)):
-        ''' mol = read_mol (filename, navg)
-            lit les profils moleculaires dans un fichier calipso'''
+        '''
+        Reads the ancillary molecular number density from CALIOP file
+        shape [nprof, nlevels]
+        '''
         mol = self._read_var('Molecular_Number_Density', navg, idx=idx)
         if prof:
             mol = mol[prof,:]
         return mol
 
     def temperature (self, navg=30,idx=(0,-1)):
-        ''' t = read_temperature (filename, navg)
-                lit les temperatures dans un fichier calipso'''
+        '''
+        Reads the ancillary temperature field in degC from CALIOP file
+        shape [nprof, nlevels]
+        '''
         t = self._read_var('Temperature', navg, idx=idx)
         return t
 
     def rh (self, navg=30, idx=(0,-1)):
+        '''
+        Reads the ancillary relative humidity field from CALIOP file
+        shape [nprof, nlevels]
+        '''
         rh = self._read_var('Relative_Humidity', navg, idx=idx)
         return rh
         
     def pressure_on_lidar_alt (self, navg=30, alt=lidar_alt, metalt=met_alt, idx=(0,-1)):
-        ''' lit la pression calipso en la moyennant sur navg profils,
-            et en l'interpolant sur les niveaux d'altitude lidar.'''
+        '''
+        Reads the ancillary pressure field from CALIOP file, interpolated on 
+        CALIOP altitude levels.
+        shape [nprof, nz]
+        '''
         p0 = self.pressure (navg=navg,idx=idx)
         p = _remap_y (p0, metalt, alt)
-
         return p
 
     def mol_on_lidar_alt (self, navg=30,prof=None, alt=lidar_alt, metalt=met_alt,idx=(0,-1)):
-        """Lit le moleculaire et l'interpole sur les altitudes lidar"""
+        '''
+        Reads the ancillary molecular number density from CALIOP file, interpolated on
+        CALIOP altitude levels.
+        shape [nprof, nz]
+        '''
         mol0 = self.mol (navg=navg, prof=prof,idx=idx)
-        mol = _remap_y (mol0, metalt, alt)
-        
+        mol = _remap_y (mol0, metalt, alt)        
         return mol
 
     def mol_calibration_coef(self, mol=None, atb=None, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0,-1), navgh=50, zmin=30, zmax=34):
         '''
-        mol_calibration_coef(mol=mol, atb=atb, navg=navg, prof=prof, alt=lidar_alt, metalt=met_alt, idx=idx, navgh=100)
-            Returns the molecular calibration coefficient, computed from atb 532 nm and molecular density profiles,
-            averaged between zmin and zmax km vertically and over profiles [i-navgh:i+navgh] horizontally (moving average horizontally)
-            
-            Same strategy as CALIPSO NASA algorithm
+        Returns the molecular calibration coefficient, computed from atb 532 nm and molecular density profiles,
+        averaged between zmin and zmax km vertically, and [i-navgh:i+navgh] profiles horizontally using a moving average.
+        shape [nprof]
         '''
         if mol is None and atb is None:            
             mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt, metalt=metalt, idx=idx)
@@ -438,142 +476,93 @@ class Cal1(_Cal):
             
         return coef
         
-    def calibration_data(self, mol=None, atb=None, navg=20, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0,-1), navgh=5, zmin=30, zmax=34):
-        '''
-        for debugging purposes
-        '''
-        if atb is None:            
-            mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt, metalt=metalt, idx=idx)
-            atb = self.atb(navg=navg, prof=prof, idx=idx)
-
-        # remove atb unfit for calibration purposes
-        # this level of backscattering is most probably due to noise in the lower stratosphere
-        # (and if it's not noise we don't want it anyway)
-        atb[np.abs(atb) > atb_max[self.z]] = np.nan
-
-        nprof = atb.shape[0]        
-
-        mol[mol < 0] = np.nan
-        idx = (alt >= zmin) & (alt <= zmax)
         
-        atb_for_normalization = atb[:,idx]
-        mol_for_normalization = mol[:,idx]
-        atb_for_normalization_by_profile = nanmean(atb[:,idx], axis=1)
-        mol_for_normalization_by_profile = nanmean(mol[:,idx], axis=1)
-
-        # now do a moving average, weeding out bad profiles
-        atb_for_normalization_averaged = np.zeros(nprof)
-        mol_for_normalization_averaged = np.zeros(nprof)
-        
-        bounds = iatb_bounds[self.z]
-
-        for i in np.arange(nprof):
-            
-            idxh = np.r_[np.max([0, i-navgh]):np.min([nprof, i+navgh])]
-            atbslice = atb_for_normalization_by_profile[idxh]
-            molslice = mol_for_normalization_by_profile[idxh]
-            idx = (atbslice > bounds[0]) & (atbslice < bounds[1])
-            atb_for_normalization_averaged[i] = nanmean(atbslice[idx])
-            mol_for_normalization_averaged[i] = nanmean(molslice)
-
-        return (atb_for_normalization, mol_for_normalization, atb_for_normalization_averaged,
-                atb_for_normalization_by_profile, mol_for_normalization_averaged, mol_for_normalization_by_profile)
-
-    def mol_attenuate(self, mol, alt):
-        '''
-        Attenuate the molecular backscatter signal
-        Make it a "attenuated molecular backscatter"
-        Might be really slow...
-        '''
-        smol = 8.*np.pi/3.
-        
-        nprof, nalt = mol.shape
-
-        for i in np.arange(nprof):
-            molprof = mol[i,:]
-            for ialt in np.arange(nalt):
-                # compute integrated molecular backscatter down to ialt
-                imol = _integrate_signal(molprof[0:ialt], alt[0:ialt])
-                # integration extinction
-                ialphamol = smol * imol
-                # attenuate molecular
-                mol[i,ialt] *= np.exp(-2.* ialphamol)
-        
-        return mol
-
     def mol_on_lidar_alt_calibrated(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0,-1), zcal=(30,34), attenuated=False):
         '''
-        mol_on_lidar_alt_calibrated()
-            returns profiles of visible molecular backscatter calibrated on the 532 nm channel
+        Returns an estimate of the molecular backscatter at 532 nm, computed from the molecular number density calibrated on
+        the attenuated total backscatter at 532 nm (both from the CALIOP file), using the calibration coefficient returned
+        from mol_calibration_coef().
+        Shape: [nprof, nz]
         '''
         mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt, metalt=metalt, idx=idx)
         atb = self.atb(navg=navg, prof=prof, idx=idx)
-        # taille de mol [nprof, nalt]
         
         coef = self.mol_calibration_coef(mol=mol, atb=atb, zmin=zcal[0], zmax=zcal[1])
         for i in np.arange(mol.shape[0]):
             mol[i,:] *= coef[i]
             
-        if attenuated:
-            mol = self.mol_attenuate(mol, alt)
-        
         return mol
     
-    def scattering_ratio(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0,-1)):
-        '''
-        scattering_ratio()
-            returns the scattering ratio (atb532/mol) computed from atb532 and calibrated molecular density profiles
-        '''
-        mol_calib = self.mol_on_lidar_alt_calibrated(navg=navg, prof=prof, alt=lidar_alt, metalt=met_alt, idx=idx)
-        atb = self.atb(navg=navg, prof=prof, idx=idx)
-        r = atb/mol_calib
-        return r
-    
     def temperature_on_lidar_alt (self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0,-1)):
-        ''' t = read_temperature_remap (filename, navg)
-                lit les temperatures dans un fichier calipso,
-                les moyenne tous les navg profils,
-                et les interpole sur les niveaux d'altitude lidar'''
+        '''
+        Returns the ancillary temperature field in degC, interpolated on CALIOP altitude levels.        
+        '''
         t0 = self.temperature (navg=navg, idx=idx)
         t = _remap_y (t0, metalt, alt)
         if prof:
             t = t[prof,:]
         return t
 
-    def tropopause_height(self, navg=30, prof=None, idx=(0,-1)):
-        tropoz = self._read_var('Tropopause_Height', navg, idx=idx)
-        return tropoz
-        
-    def tropopause_temperature(self, navg=30, prof=None, idx=(0,-1)):
-        tropot = self._read_var('Tropopause_Temperature', navg, idx=idx)
-        return tropot
-            
-
     def rh_on_lidar_alt (self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0,-1)):
+        '''
+        Returns the ancillary relative humidity field from the CALIOP file, interpolated on CALIOP altitude levels.
+        '''
         rh0 = self.rh(navg=navg, idx=idx)
         rh = _remap_y(rh0, metalt, alt)
-    
+
         if prof:
             rh = rh[prof,:]
         return rh
 
-    def peek(self, lat, alt, data, latrange, dataname, vmin, vmax):
-        import matplotlib.pyplot as plt
+    def scattering_ratio(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0,-1)):
+        '''
+        Returns the scattering ratio, i.e. the ratio between the attenuated total backscatter and the molecular
+        backscatter, both at 532 nm, both read from the CALIOP file.
+        '''
+        mol_calib = self.mol_on_lidar_alt_calibrated(navg=navg, prof=prof, alt=lidar_alt, metalt=met_alt, idx=idx)
+        atb = self.atb(navg=navg, prof=prof, idx=idx)
+        r = atb/mol_calib
+        return r
 
-        print 'Showing ' + dataname
-        print 'Lat range : ', latrange
-
-        plt.ioff()
-        plt.figure(figsize=(14,8))
-        plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax)
-        plt.xlim(latrange[0], latrange[1])
-        plt.ylim(0, 22)
-        plt.colorbar().set_label(dataname)
-        plt.xlabel('Latitude')
-        plt.ylabel('Altitude [km]')
-        plt.title(dataname + ' - CALIOP '+ str(self.date) + ' - '+ self.orbit)
+    def tropopause_height(self, navg=30, prof=None, idx=(0,-1)):
+        '''
+        Reads the ancillary tropopause height, in km, from the CALIOP file.
+        shape [nprof]
+        '''
+        tropoz = self._read_var('Tropopause_Height', navg, idx=idx)
+        return tropoz
         
+    def tropopause_temperature(self, navg=30, prof=None, idx=(0,-1)):
+        '''
+        Reads the ancillary tropopause temperature, in degC, from the CALIOP file.
+        shape [nprof]
+        '''
+        tropot = self._read_var('Tropopause_Temperature', navg, idx=idx)
+        return tropot
+
+    # some display utility functions
+    
+    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax):
+            import matplotlib.pyplot as plt
+
+            print 'Showing ' + dataname
+            print 'Lat range : ', latrange
+
+            plt.ioff()
+            plt.figure(figsize=(14,8))
+            plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax)
+            plt.xlim(latrange[0], latrange[1])
+            plt.ylim(0, 22)
+            plt.colorbar().set_label(dataname)
+            plt.xlabel('Latitude')
+            plt.ylabel('Altitude [km]')
+            plt.title(dataname + ' - CALIOP '+ str(self.date) + ' - '+ self.orbit)
+            
     def peek_atb(self, latrange=[-84,84], navg=120):
+        '''
+        Display a quick look at the attenuated total backscatter as a function of latitude
+        and altitude.
+        '''
         
         lon,lat = self.coords(navg=navg)
         atb = self.atb(navg=navg)
@@ -581,9 +570,13 @@ class Cal1(_Cal):
         lat = lat[idx]
         atb = atb[idx,:]
         print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
-        self.peek(lat, lidar_alt, np.log10(atb), latrange, 'Attenuated Total Backscatter', -4, -2)
+        self._peek(lat, lidar_alt, np.log10(atb), latrange, 'Attenuated Total Backscatter', -4, -2)
                 
     def peek_depol(self, latrange=[-84,84], navg=120):
+        '''
+        Display a quick look at the depolarization ratio as a function of latitude
+        and altitude.
+        '''
 
         lon,lat = self.coords(navg=navg)
         total = self.atb(navg=navg)
@@ -595,9 +588,12 @@ class Cal1(_Cal):
         depol = depol[idx,:]
         print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
 
-        self.peek(lat, lidar_alt, depol, latrange, 'Volumic Depolarization Ratio', 0, 0.8)
+        self._peek(lat, lidar_alt, depol, latrange, 'Volumic Depolarization Ratio', 0, 0.8)
 
     def peek_colorratio(self, latrange=[-84,84], navg=120):
+        '''
+        Display a quick look at the color ratio as a function of latitude and altitude.
+        '''
 
         lon,lat = self.coords(navg=navg)
         total = self.atb(navg=navg)
@@ -608,11 +604,26 @@ class Cal1(_Cal):
         cr = cr[idx,:]
         print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
 
-        self.peek(lat, lidar_alt, cr, latrange, 'Volumic Color Ratio', 0, 1.2)
+        self._peek(lat, lidar_alt, cr, latrange, 'Volumic Color Ratio', 0, 1.2)
 
-# classe pour level 2
+
 
 class Cal2(_Cal):
+    
+    '''
+    Class to process CALIOP Level 2 files.
+    No averaging is possible here given the nature of some variables.
+    example use:
+        
+        from calipso import Cal2
+        
+        c = Cal2('CAL_LID_L2_05kmCLay-Prov-V3-01.2010-12-31T01-37-30ZN.hdf')
+        lon, lat = c.coords()
+        nl, base, top = c.layers()
+        ...
+        c.close()
+        
+    '''
 
     def _read_var(self, var, idx=(0, -1)):
         var = self.hdf.select(var)
@@ -624,105 +635,199 @@ class Cal2(_Cal):
         return data
 
     def lat(self, idx=(0, -1)):
+        '''
+        Returns latitude for profiles.
+        shape [nprof]
+        '''
         return self._read_var('Latitude', idx=idx)[:,1]
 
     def lon(self, idx=(0, -1)):
+        '''
+        Returns longitude for profiles.
+        shape [nprof]
+        '''
         return self._read_var('Longitude', idx=idx)[:,1]
 
     def coords(self, idx=(0,-1)):
+        '''
+        Returns longitude and latitude for profiles.
+        shape [nprof]
+        '''
         lat =self._read_var('Latitude', idx=idx)[:,1]
         lon =self._read_var('Longitude', idx=idx)[:,1]
         return lon, lat
 
     def off_nadir_angle (self, idx=(0, -1)):
+        '''
+        Returns the off-nadir-angle, in deg, for profiles.
+        shape [nprof]
+        '''
         return self._read_var('Off_Nadir_Angle', idx=idx)
 
     def tropopause_height (self, idx=(0,-1)):
+        '''
+        Returns the ancillary tropopause height, in km, for profiles.
+        shape [nprof]
+        '''
         return self._read_var('Tropopause_Height', idx=idx)[:,0]
 
     def tropopause_temperature(self, idx=(0,-1)):
+        '''
+        Returns the ancillary tropopause temperature, in degC, for profiles
+        shape [nprof]
+        '''
         return self._read_var('Tropopause_Temperature', idx=idx)
 
     def dem_surface_elevation(self, idx=(0, -1)):
+        '''
+        Returns the ancillary surface elevation (from digital elevation model)
+        in km, for profiles
+        shape [nprof]
+        '''
         return self._read_var('DEM_Surface_Elevation', idx=idx)
 
-    ## Layer info
+    # Layer info
 
     def layers(self, idx=(0,-1)):
+        '''
+        Returns layer information by profile:
+        nl = number of layers, shape [nprof]
+        top = layer top, shape [nprof, nlaymax]
+        base = layer base, shape [nprof, nlaymax]
+        '''
+        
         nl = self._read_var('Number_Layers_Found', idx=idx)[:,0]
         top = self._read_var('Layer_Top_Altitude', idx=idx)
         base = self._read_var('Layer_Base_Altitude', idx=idx)
         return nl, base, top
 
     def layers_number(self, idx=(0,-1)):
+        '''
+        Returns the number of layer found by profile
+        shape [nprof]
+        '''
         return self._read_var('Number_Layers_Found', idx=idx)[:,0]
-
-    # in retrospect, this 'cloud_' prefix was a bad idea, I keep this for compatibility
-    def cloud_layers (self, idx=(0,-1)):
-        nl, base, top = self.layers(idx=idx)        
-
-    def cloud_layers_number(self, idx=(0,-1)):
-        return self.layers_number(idx=idx)
         
     def midlayer_temperature (self, idx=(0,-1)):
+        '''
+        Returns the midlayer temperature by layer, in km
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Midlayer_Temperature', idx=idx)
 
     def flag (self, idx=(0,-1)):
+        '''
+        Returns the feature classification flag by layer
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Feature_Classification_Flags', idx=idx)
 
     def layer_type (self, idx=(0,-1)):
+        '''
+        Returns the layer type from the feature classification flag
+        shape [nprof, nlaymax]
+        '''
         f = self.flag(idx=idx) 
         # type flag : bits 1 to 3
         typeflag = (f & 7)
         return typeflag
         
     def layer_subtype(self, idx=(0, -1)):
+        '''
+        Returs the layer subtype, as identified from the feature classification flag
+        shape [nprof, nlaymax]
+        '''
         f = self.flag(idx=idx)
         # subtype flag : bits 10 to 12
         subtype = (f & 3584) >> 9
         return subtype
 
     def layer_type_qa(self, idx=(0,-1)):
+        '''
+        Returs the quality flag for the layer type, as identified from the feature classification flag
+        shape [nprof, nlaymax]
+        '''
         f = self.flag(idx=idx)
         typeflag_qa = (f & 24) >> 3
         return typeflag_qa
 
     def phase (self, idx=(0,-1)):
+        '''
+        Returs the layer thermodynamical phase, as identified from the feature classification flag
+        shape [nprof, nlaymax]
+        '''
         f = self.flag(idx=idx)
         # 96 = 0b1100000, bits 6 to 7
         cloudflag = (f & 96) >> 5
         return cloudflag
 
     def phase_qa (self, idx=(0,-1)):
+        '''
+        Returns the quality flag for the layer thermodynamical phase, as identified from the feature classification flag
+        shape [nprof, nlaymax]
+        '''
+
         f = self.flag(hdf, idx=idx)
         cloudflag_qa = (f & 384) >> 7
         return cloudflag_qa
 
-    def cloud_type (self, idx=(0,-1)):
-        return self.phase(idx=idx)
-
     def opacity_flag(self, idx=(0,-1)):
+        '''
+        Returns the opacity flag by layer.
+        shape [nprof, nlaymax]
+        '''
+        
         return self._read_var('Opacity_Flag', idx=idx)
 
     def horizontal_averaging(self, idx=(0, -1)):
+        '''
+        Returns the horizontal averaging needed to detect a given layer.
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Horizontal_Averaging', idx=idx)
 
     def iatb532 (self, idx=(0,-1)):
+        '''
+        Returns the integrated attenuated total backscatter at 532 nm along the layer thickness.
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Integrated_Attenuated_Backscatter_532', idx=idx)
 
     def ivdp (self, idx=(0,-1)):
+        '''
+        Returns the volumic depolarization ratio for the entire layer thickness, obtained by the
+        ratio of integrated perpendicular backscatter on the integrated parallel backscatter at 532 nm
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Integrated_Volume_Depolarization_Ratio', idx=idx)
 
     def ipdp (self, idx=(0,-1)):
+        '''
+        Returns the particulate depolarization ratio for the entire layer thickness, i.e. the volumic
+        depolarization ratio corrected to remove its molecular component.
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Integrated_Particulate_Depolarization_Ratio', idx=idx)
 
     def icr (self, idx=(0,-1)):
+        '''
+        Returns the integrated attenuated color ratio for the entire layer thickness.
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Integrated_Attenuated_Total_Color_Ratio', idx=idx)
         
     def ipcr (self, idx=(0,-1)):
+        '''
+        Returns the integrated color ratio for the entire layer thickness
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Integrated_Particulate_Color_Ratio', idx=idx)
 
     def od(self, idx=(0, -1)):
+        '''
+        Returns the optical depth found by layer.
+        shape [nprof, nlaymax]
+        '''
         return self._read_var('Feature_Optical_Depth_532', idx=idx)
 
 
