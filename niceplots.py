@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
+'''
 niceplots.py
+
 Created by Vincent Noel on 2010-11-16, LMD/CNRS.
-"""
+
+plotting utilities
+
+'''
 
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
@@ -11,6 +15,13 @@ import matplotlib.dates as mdates
 import numpy as np
 
 def infobox(text, alpha=0.7, location='top left'):
+    '''
+    plots a box containing text in a corner of the active figure.
+    arguments:
+        text: the text to display
+        alpha: transparency of the box
+        location: either 'top left' or 'top right'
+    '''
     ax = plt.gca()
     props = dict(boxstyle='round', facecolor='wheat', alpha=alpha)
     if location == 'top left':
@@ -27,6 +38,13 @@ def infobox(text, alpha=0.7, location='top left'):
     ax.text(x, y, text, transform=ax.transAxes, va='top', ha=ha, bbox=props)
 
 def bar(x, h, color='#002299', show_stats=False, normed=False):
+    '''
+    plots a nice histogram.
+    x, h:  the histogram bins and histogram heights, as returned by np.histogram.
+    color: color of the histogram bars
+    show_stats: adds an infobox in a corner of the histogram displaying the average and standard deviation of the distribution
+    normed: if True, the distribution will be normed so its integration gives 1.
+    '''
     w = (x[1]-x[0])*0.8
     delta = (x[1]-x[0])*0.1
     
@@ -46,19 +64,22 @@ def bar(x, h, color='#002299', show_stats=False, normed=False):
         ax.text(0.05, 0.95, '$\mu = %5.2f $' % avg, transform=ax.transAxes, va='top', bbox=props)
 
 def hist(x, bins=None):
+    '''
+    shortcut to create a distribution and plot it.
+    '''
     h, xe = np.histogram(x, bins=bins)
     bar(xe, h)
 
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
-
 def ygrid(color='grey'):
+    '''
+    Activates the grid on the y-axis for the active axis.
+    '''
     plt.gca().yaxis.grid(True, color=color)
 
 def xgrid(color='grey'):
+    '''
+    Activates the grid on the x-axis for active axis.
+    '''
     plt.gca().xaxis.grid(True, color=color)
     
 def shade_x_areas(ax, x, areas, color='grey'):
@@ -75,12 +96,18 @@ def shade_dates_areas(ax, dates, areas, color='grey'):
     shade_x_areas(ax, x, areas, color=color)
     
 def yaxis_season_dates(ax, days=[1,8,16,24]):
+    '''
+    Sets tick marks on the y-axis nicely chosen for display time series over a season.
+    '''
     yax = ax.yaxis
     yax.axis_date()
     yax.set_major_locator(mdates.DayLocator(bymonthday=days))
     yax.set_major_formatter(mdates.DateFormatter('%m-%d'))
     
 def axis_season_dates(ax, days=[1,8,16,24]):
+    '''
+    Sets tick marks on the x-axis nicely chosen for display time series over a season.
+    '''
     xax = ax.xaxis
     xax.axis_date()
     xax.set_major_locator(mdates.DayLocator(bymonthday=days))

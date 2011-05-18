@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 #encoding: utf-8
 
+'''
+Function to merge existing PDF figures into a multi-page PDF.
+'''
+
+
 from pyPdf import PdfFileWriter, PdfFileReader
 import glob
-import sys
 import os
 
 def merge_pdf_with_basename(basename, cleanup=False):
