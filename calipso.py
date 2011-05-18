@@ -265,7 +265,7 @@ class Cal1(_Cal):
                 data = _vector_average(data, navg)
         else:
             data = var[idx[0]:idx[1],:]
-            if navg: 
+            if navg  > 1: 
                 data = _array_average(data, navg)
 
         var.endaccess()
@@ -276,11 +276,14 @@ class Cal1(_Cal):
         var = self.hdf.select('Profile_Time')
         time  = var[0:-1].squeeze()
         
-        n = np.size(time,0)/navg
-        time2 = np.zeros(n)
-        for i in np.arange(n):
-            time2[i] = time[i * navg]
-        return time2
+        if navg > 1:
+            n = np.size(time,0)/navg
+            time2 = np.zeros(n)
+            for i in np.arange(n):
+                time2[i] = time[i * navg]
+            time = time2
+            
+        return time
 
     # Coordoonees
     def coords (self, navg=30, idx=(0,-1)):
