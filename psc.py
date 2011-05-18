@@ -21,13 +21,20 @@ def classify_psc_type(r, depol):
     (cf Pitts et al 2009)
     '''
     
-    if (r >= 4.5) and (depol >= 0.035) and (depol < 0.9):
+    sts_max_depol = 0.035
+    sts_min_r = 1.25
+    ice_min_r = 4.5 # 3.5
+
+    ice_min_depol = sts_max_depol
+    nat_max_r = ice_min_r
+    
+    if (r >= ice_min_r) and (depol >= ice_min_depol) and (depol < 0.8):
         psc_type = psc_id['Ice']
-    elif (r >= 1.25) and (depol < 0.035) and (depol >= -0.2):
+    elif (r >= sts_min_r) and (depol < sts_max_depol) and (depol >= -0.2):
         psc_type = psc_id['STS']
-    elif (depol > 0.035) and (depol < 0.9) and (r < 4.5) and (r > 0.8):
+    elif (depol > sts_max_depol) and (depol < 0.8) and (r < nat_max_r) and (r > 1.0):
         psc_type = psc_id['NAT']
-    elif (depol < 0.035) and (depol >= -0.2) and (r < 1.25) and (r > 0.8):
+    elif (depol < sts_max_depol) and (depol >= 0.) and (r < sts_min_r) and (r > 1.0):
         psc_type = psc_id['NAT']
     else:
         psc_type = psc_id['unknown']

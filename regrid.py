@@ -8,6 +8,35 @@
 
 import numpy as np
 from scipy.interpolate import interp1d
+from datetime import datetime, timedelta
+
+def _new_dates_with_timestep(dates, timestep, start=None, end=None):
+    if start is None:
+        start = np.min(dates)
+    current = start.replace(hour=0, minute=0, second=0)
+    newdates = np.array([])
+    if end is None:
+        end = np.max(dates).replace(hour=0, minute=0, second=0) + timedelta(days=1)
+    while current < (end+timestep):
+        newdates = np.append(newdates, current)
+        current += timestep
+    return newdates
+
+def aggregate_with_timestep(dates, data, timestep):
+    newdates = _new_dates_with_timestep(dates, timestep)
+    newdata = np.zeros([newdates.size])
+    for i in np.r_[0:newdates.size-1]:
+        idx = (dates >= newdates[i]) & (dates < newdates[i+1])
+        newdata[i] = np.sum(data[idx])
+    return newdata, newdates
+
+def average_with_timestep(dates, data, timestep, start=None, end=None):
+    newdates = _new_dates_with_timestep(dates, timestep, start=start, end=end)
+    newdata = np.zeros([newdates.size])
+    for i in np.r_[0:newdates.size-1]:
+        idx = (dates >= newdates[i]) & (dates < newdates[i+1])
+        newdata[i] = np.mean(data[idx])
+    return newdata, newdates
 
 def regrid_profiles(pvec, pprof, vprof):
     '''
@@ -30,6 +59,21 @@ def regrid_profiles(pvec, pprof, vprof):
         vprof2[i,:] = np.interp(pvec, pprof[i,::-1], vprof[i,::-1])
         
     return vprof2
+
+
+def regrid_array_z(zvec, zarr, varr, kind='linear'):
+    n1, n2 = varr.shape
+    varr2 = np.empty([zvec.size, n2])
+    for i in np.arange(n2):
+        if not np.all(np.diff(zarr[:,i]) >= 0):
+            print 'Warning: altitude values should be increasing.'
+            print zarr[:,i]
+            print np.diff(zarr[:,i])
+        f = interp1d(zarr[:,i], varr[:,i], kind=kind, bounds_error=False)
+        varr2[:,i] = f(zvec)
+            
+    return varr2
+                
     
 def regrid_array(pvec, parr, varr, kind='linear'):
     '''
