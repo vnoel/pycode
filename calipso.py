@@ -12,7 +12,6 @@ LMD/CNRS
 
 # cannot use pytables since calipso files are hdf4.
 from pyhdf.SD import SD
-from scipy.stats import nanmean
 from scipy.integrate import trapz
 import numpy as np
 import numpy.ma as ma
@@ -177,7 +176,7 @@ def _array_average (a0, navg, weighted = False):
     ''' a = _array_average (a0, navg, weighted=False)
         moyenne le tableau a0 le long des x tous les navg profils.'''
 
-    #a0 = a0.squeeze()
+    a0 = a0.squeeze()
 
     assert a0.ndim == 2, 'in _array_average, a0 should be a 2d array'
     if navg == 1: return a0
@@ -453,12 +452,17 @@ class Cal1(_Cal):
         # remove atb and molecular unfit for calibration purposes
         # this level of backscattering is most probably due to noise in the lower stratosphere
         # (and if it's not noise we don't want it anyway)
+        
         atb[np.abs(atb) > atb_max[self.z]] = np.nan
         mol[mol < 0] = np.nan
+        
+        atb = ma.masked_invalid(atb)
+        mol = ma.masked_invalid(mol)
             
         idx = (alt >= zmin) & (alt <= zmax)
-        atb_calib_profile = nanmean(atb[:,idx], axis=1)
-        mol_calib_profile = nanmean(mol[:,idx], axis=1)
+        
+        atb_calib_profile = ma.mean(atb[:,idx], axis=1)
+        mol_calib_profile = ma.mean(mol[:,idx], axis=1)
          
         # now do a moving average, weeding out bad profiles
         atbbounds = iatb_bounds[self.z]
@@ -472,12 +476,12 @@ class Cal1(_Cal):
             atbslice = atb_calib_profile[idxh]
             molslice = mol_calib_profile[idxh]
             idx = (atbslice > atbbounds[0]) & (atbslice < atbbounds[1])
-            coef[i] = nanmean(atbslice[idx])/nanmean(molslice)
+            coef[i] = ma.mean(atbslice[idx])/ma.mean(molslice)
             
         return coef
         
         
-    def mol_on_lidar_alt_calibrated(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0,-1), zcal=(30,34), attenuated=False):
+    def mol_on_lidar_alt_calibrated(self, navg=30, prof=None, alt=lidar_alt, navgh=50, metalt=met_alt, idx=(0,-1), zcal=(30,34), attenuated=False):
         '''
         Returns an estimate of the molecular backscatter at 532 nm, computed from the molecular number density calibrated on
         the attenuated total backscatter at 532 nm (both from the CALIOP file), using the calibration coefficient returned
@@ -487,7 +491,7 @@ class Cal1(_Cal):
         mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt, metalt=metalt, idx=idx)
         atb = self.atb(navg=navg, prof=prof, idx=idx)
         
-        coef = self.mol_calibration_coef(mol=mol, atb=atb, zmin=zcal[0], zmax=zcal[1])
+        coef = self.mol_calibration_coef(mol=mol, atb=atb, zmin=zcal[0], zmax=zcal[1], navgh=navgh)
         for i in np.arange(mol.shape[0]):
             mol[i,:] *= coef[i]
             
