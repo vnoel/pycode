@@ -10,6 +10,23 @@ import numpy as np
 from scipy.interpolate import interp1d
 from datetime import datetime, timedelta
 
+def remap(lon, lat, var, lonstep, latstep):
+    lonmin, lonmax = np.min(lon), np.max(lon)
+    latmin, latmax = np.min(lat), np.max(lat)
+    newlon = np.r_[lonmin:lonmax+lonstep:lonstep]
+    newlat = np.r_[latmin:latmax+latstep:latstep]
+    nlon = np.size(newlon)
+    nlat = np.size(newlat)
+    newvar = np.zeros([nlon, nlat])
+    for i in range(nlon-1):
+        idxlon = (lon >= newlon[i]) & (lon < newlon[i+1])
+        for j in range(nlat-1):
+            idxlat = (lat >= newlat[j]) & (lat < newlat[j+1])
+
+            newvar[i,j] = np.sum(var[idxlon,:][:,idxlat])
+
+    return newvar, newlon, newlat
+
 def _new_dates_with_timestep(dates, timestep, start=None, end=None):
     if start is None:
         start = np.min(dates)
