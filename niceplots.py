@@ -92,6 +92,12 @@ def shade_x_areas(ax, x, areas, color='grey'):
     ax.add_collection(collection)
     
 def shade_dates_areas(ax, dates, areas, color='grey'):
+    '''
+    shade date areas on plot x axis
+    dates = list of dates
+    areas = boolean flag of dates to shade
+    
+    '''
     x = mdates.date2num(dates)
     shade_x_areas(ax, x, areas, color=color)
     
