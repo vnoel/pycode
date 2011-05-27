@@ -243,10 +243,10 @@ class _Cal:
         self.year = int(filename[-25:-21])
         self.month = int(filename[-20:-18])
         self.day = int(filename[-17:-15])
-        hour = int(filename[-14:-12])
-        minutes = int(filename[-11:-9])
-        seconds = int(filename[-8:-6])
-        self.date = datetime.datetime(self.year, self.month, self.day, hour, minutes, seconds)
+        self.hour = int(filename[-14:-12])
+        self.minutes = int(filename[-11:-9])
+        self.seconds = int(filename[-8:-6])
+        self.date = datetime.datetime(self.year, self.month, self.day, self.hour, self.minutes, self.seconds)
         
     def __repr__(self):
         return self.filename
