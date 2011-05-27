@@ -285,13 +285,16 @@ class Cal1(_Cal):
             print var+' not present in file '+self.filename+' (version too old, maybe ?)'
             return None
             
-        data = var[:].squeeze()
-        if data.ndim == 1:
-            data = var[idx[0]:idx[1]]
+        if idx is None:
+            idx = (0, -1)
+            
+        this_var = var[:].squeeze()
+        if this_var.ndim == 1:
+            data = this_var[idx[0]:idx[1]]
             if navg > 1: 
                 data = _vector_average(data, navg)
         else:
-            data = var[idx[0]:idx[1],:]
+            data = this_var[idx[0]:idx[1],:]
             if navg  > 1: 
                 data = _array_average(data, navg)
 
@@ -299,7 +302,7 @@ class Cal1(_Cal):
 
         return data
         
-    def time(self, navg=30):
+    def time(self, navg=30,idx=(0,-1)):
         '''
         Reads time for CALIOP profiles, averaged on navg
         shape [nprof]
@@ -307,7 +310,8 @@ class Cal1(_Cal):
             time = c.time(navg=15)
         '''
         var = self.hdf.select('Profile_Time')
-        time  = var[0:-1].squeeze()
+        time = var[:].squeeze()
+        time = time[idx[0]:idx[1]]
         
         if navg > 1:
             n = np.size(time,0)/navg
@@ -315,6 +319,8 @@ class Cal1(_Cal):
             for i in np.arange(n):
                 time2[i] = time[i * navg]
             time = time2
+            
+        var.endaccess()
             
         return time
 
