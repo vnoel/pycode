@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # encoding: utf-8
-'''
+"""
 niceplots.py
 
 Created by Vincent Noel on 2010-11-16, LMD/CNRS.
 
 plotting utilities
 
-'''
+"""
 
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
@@ -15,13 +15,13 @@ import matplotlib.dates as mdates
 import numpy as np
 
 def infobox(text, alpha=0.7, location='top left'):
-    '''
+    """
     plots a box containing text in a corner of the active figure.
     arguments:
         text: the text to display
         alpha: transparency of the box
         location: either 'top left' or 'top right'
-    '''
+    """
     ax = plt.gca()
     props = dict(boxstyle='round', facecolor='wheat', alpha=alpha)
     if location == 'top left':
@@ -38,13 +38,13 @@ def infobox(text, alpha=0.7, location='top left'):
     ax.text(x, y, text, transform=ax.transAxes, va='top', ha=ha, bbox=props)
 
 def bar(x, h, color='#002299', show_stats=False, normed=False):
-    '''
+    """
     plots a nice histogram.
     x, h:  the histogram bins and histogram heights, as returned by np.histogram.
     color: color of the histogram bars
     show_stats: adds an infobox in a corner of the histogram displaying the average and standard deviation of the distribution
     normed: if True, the distribution will be normed so its integration gives 1.
-    '''
+    """
     w = (x[1]-x[0])*0.8
     delta = (x[1]-x[0])*0.1
     

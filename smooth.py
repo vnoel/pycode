@@ -1,4 +1,5 @@
 from scipy import signal
+import numpy as np
 
 def gauss_kern(size, sizey=None):
     """ Returns a normalized 2D gauss kernel array for convolutions """
@@ -7,8 +8,8 @@ def gauss_kern(size, sizey=None):
         sizey = size
     else:
         sizey = int(sizey)
-    x, y = mgrid[-size:size+1, -sizey:sizey+1]
-    g = exp(-(x**2/float(size)+y**2/float(sizey)))
+    x, y = np.meshgrid(np.r_[-size:size+1], np.r_[-sizey:sizey+1])
+    g = np.exp(-(x**2/float(size)+y**2/float(sizey)))
     return g / g.sum()
 
 def blur_image(im, n, ny=None) :
@@ -18,5 +19,5 @@ def blur_image(im, n, ny=None) :
     """
     g = gauss_kern(n, sizey=ny)
     improc = signal.convolve(im,g, mode='valid')
-    return(improc)
+    return improc
 

@@ -36,7 +36,7 @@ def hno3_saturation_pressure_ln(T, wvp):
 
     hno3sat = np.power(10., log10_hno3sat)
     # print 'hno3sat : ', hno3sat, ' Torr'
-    hno3sat = hno3sat * 133.322
+    hno3sat *= 133.322
     # print 'hno3sat : ', hno3sat, ' Pa'
     ln_hno3sat = np.log(hno3sat)
     
