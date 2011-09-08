@@ -112,26 +112,33 @@ class wrf(object):
             w = _remap(w, wrflon, wrflat, on_orbit[0], on_orbit[1])
         return w
 
-def map_peninsula (lon, lat, xvar, centerlon=-60, w=2000,h=2000, cb=False, cl=None, cbtitle=None, ec='None'):
+def map_peninsula (lon, lat, xvar, centerlon=-60, w=2000,h=2000, cb=False, cl=None, cbtitle=None, ec='None', ax=None, fp=None):
     from mpl_toolkits import basemap
-    from pylab import clim
     from matplotlib.pyplot import colorbar
+    import niceplots
     
-    map = basemap.Basemap(projection='lcc',lat_0=-70,lon_0=centerlon,width=w*1000,height=h*1000, resolution='i')
+    map = basemap.Basemap(projection='lcc',lat_0=-70,lon_0=centerlon,width=w*1000,height=h*1000, resolution='i', ax=ax)
     x, y = map(lon, lat)
     if cl is None:
         pc = map.pcolormesh(x, y, xvar, edgecolors=ec)
     else:
         pc = map.pcolormesh(x, y, xvar, vmin=cl[0], vmax=cl[1], edgecolors=ec)
     map.drawmapboundary(color='grey')
-    map.drawmeridians(np.arange(-105,-15,15), labels=[0,0,0,1]) # left, right, top, bottom
-    map.drawparallels(np.arange(-90,90,10), labels=[1,0,0,0]) # left, right, top, bottom
+    if fp:
+        map.drawmeridians(np.arange(-105,-15,15), labels=[0,0,0,1], fontproperties=fp) # left, right, top, bottom
+        map.drawparallels(np.arange(-90,90,10), labels=[1,0,0,0], fontproperties=fp) # left, right, top, bottom
+    else:
+        map.drawmeridians(np.arange(-105,-15,15), labels=[0,0,0,1]) # left, right, top, bottom
+        map.drawparallels(np.arange(-90,90,10), labels=[1,0,0,0]) # left, right, top, bottom
     map.drawcoastlines(color='grey')
     
     if cb:
         cbar=colorbar(pc)
-        if cbtitle is not None:
-            cbar.set_label(cbtitle)
+        if fp:
+            niceplots.beautify_colorbar(cbar, title=cbtitle)
+        else:
+            if cbtitle is not None:
+                cbar.set_label(cbtitle)
     
     return map, pc
 
@@ -142,48 +149,44 @@ def antarctica_map(maxlat=-50, lon_0=180):
     
     return m
 
-def map_antarctica_temp(wrfout, maxlat=-50, it=0):
-    from mpl_toolkits.basemap import Basemap
-    import matplotlib.pyplot as plt
-    
-    m = Basemap(projection='splaea', boundinglat=maxlat, lon_0=180)
-    
-    lon, lat = coords(wrfout)
-    temp = temperature(wrfout)
-    plt.figure()
-    x, y = m(lon, lat)
-    m.pcolormesh(x, y, temp[it,:,:])
-    m.drawcoastlines()
-    plt.colorbar()
+# def map_antarctica_temp(wrfout, maxlat=-50, it=0):
+#     from mpl_toolkits.basemap import Basemap
+#     
+#     m = Basemap(projection='splaea', boundinglat=maxlat, lon_0=180)
+#     
+#     lon, lat = coords(wrfout)
+#     temp = temperature(wrfout)
+#     plt.figure()
+#     x, y = m(lon, lat)
+#     m.pcolormesh(x, y, temp[it,:,:])
+#     m.drawcoastlines()
+#     plt.colorbar()
 
-def geo_show(f='geo_em.d01.nc'):
-    print 'Reading file ' + f
-    try:
-        nc = netCDF4.Dataset(f)
-    except:
-        raise NameError(f + ' is not a netCDF file')
-    
-    try:
-        lat = nc.variables['XLAT_M'][0,:,:]
-        lon = nc.variables['XLONG_M'][0,:,:]
-        hgt = nc.variables['HGT_M'][0,:,:]
-    except:
-        raise NameError('Cannot find variables XLAT_M, XLONG_M, HGT_M in ' + f)
-    
-    #m = Basemap(projection='lcc', lat_0=np.min(lat.ravel()), lon_0=np.min(lon.ravel()), width=10000*1000, height=6000*1000)
-    m = Basemap(projection='robin', lon_0=0)
-    x, y = m(lon, lat)
-    
-    print 'Plotting the damn thing'
-    plt.figure()
-    
-    if clim is None:
-        m.pcolor(x, y, hgt)
-    else:
-        m.pcolor(x, y, hgt, vmin=clim[0], vmax=clim[1])
-        
-    m.drawmapboundary()
-    m.drawmeridians(np.r_[-180:180:30])
-    m.drawparallels(np.r_[-90:90:15])
-    
-    plt.show()
+# def geo_show(f='geo_em.d01.nc'):
+#     print 'Reading file ' + f
+#     try:
+#         nc = netCDF4.Dataset(f)
+#     except:
+#         raise NameError(f + ' is not a netCDF file')
+#     
+#     try:
+#         lat = nc.variables['XLAT_M'][0,:,:]
+#         lon = nc.variables['XLONG_M'][0,:,:]
+#         hgt = nc.variables['HGT_M'][0,:,:]
+#     except:
+#         raise NameError('Cannot find variables XLAT_M, XLONG_M, HGT_M in ' + f)
+#     
+#     #m = Basemap(projection='lcc', lat_0=np.min(lat.ravel()), lon_0=np.min(lon.ravel()), width=10000*1000, height=6000*1000)
+#     m = Basemap(projection='robin', lon_0=0)
+#     x, y = m(lon, lat)
+#     
+#     print 'Plotting the damn thing'
+#     plt.figure()
+#     
+#     m.pcolor(x, y, hgt)
+#         
+#     m.drawmapboundary()
+#     m.drawmeridians(np.r_[-180:180:30])
+#     m.drawparallels(np.r_[-90:90:15])
+#     
+#     plt.show()
