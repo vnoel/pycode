@@ -112,7 +112,7 @@ class Ecmwf:
         # aphei for era-interim pressure level files
         identifier = 'aph' + self.identifier
         filename = varname + '.%04d%02d.%s.GLOBAL_%s.nc' % (year, month, identifier, self.res)
-        path = self.path + 'AN_PL/' + '%04d' % (year) + '/'
+        path = self.path + 'AN_PL/' + '%04d' % year + '/'
         name = path + filename
         return name
 
@@ -126,12 +126,12 @@ class Ecmwf:
 
         lon = nc.variables['lon'][:]
         lat = nc.variables['lat'][:]
-        if not(all(lon==self.lon) and all(lat==self.lat)):
+        if not(all(self.lon == lon) and all(lat==self.lat)):
             raise NameError('Longitude or latitude vectors not of expected size')
         
         levels = nc.variables['level'][:]
 
-        if level != -1:
+        if level > -1:
             levels = levels[level]
 
         # passer de 0->360 a -180->180 (comme ds fichiers calipso)
