@@ -12,7 +12,58 @@ plotting utilities
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
 import matplotlib.dates as mdates
+import matplotlib.font_manager as fm
 import numpy as np
+
+mundofont = '/users/noel/.fonts/MundoSansStd.otf'
+mundofontbold = '/users/noel/.fonts/MundoSansStd-Med.otf'
+myfont = {}
+myfont['small'] = fm.FontProperties(fname=mundofont, size=12)
+myfont['med'] = fm.FontProperties(fname=mundofont, size=14)
+myfont['big'] = fm.FontProperties(fname=mundofontbold, size=18)
+
+    
+
+def legend(numpoints=2):
+    leg = plt.legend(prop=myfont['med'], numpoints=numpoints)
+    plt.setp(leg.get_frame(), lw=0.5)
+
+
+def beautify_colorbar(cb, title=None):
+    ylabels = [yt.get_text() for yt in cb.ax.get_yticklabels()]
+    cb.ax.set_yticklabels(ylabels, fontproperties=myfont['small'])
+    if title:
+        cb.set_label(title, fontproperties=myfont['small'])
+    
+
+def beautify_axis(ax):
+    fig = plt.gcf()
+    fig.canvas.draw()
+    xlabels = [xt.get_text() for xt in ax.get_xticklabels()]
+    ylabels = [yt.get_text() for yt in ax.get_yticklabels()]
+    ax.set_xticklabels(xlabels, fontproperties=myfont['small'])
+    ax.set_yticklabels(ylabels, fontproperties=myfont['small'])
+    plt.setp(ax.xaxis.label, fontproperties=myfont['med'])
+    plt.setp(ax.yaxis.label, fontproperties=myfont['med'])
+    plt.setp(ax.title, fontproperties=myfont['big'])
+    
+    
+
+def beautify_axis_font(fig=None, ax=None, cb=None, leg=None):
+    '''
+    sets various fonts to Mundo Sans
+    '''
+
+    if fig is None:
+        fig = plt.gcf()
+    fig.canvas.draw()
+    if ax:
+        beautify_axis(ax)
+    # if leg:
+    #     beautify_legend(leg)
+    # doesn't work
+    if cb:
+        beautify_colorbar(cb)
 
 def infobox(text, alpha=0.7, location='top left'):
     '''
@@ -23,7 +74,7 @@ def infobox(text, alpha=0.7, location='top left'):
         location: either 'top left' or 'top right'
     '''
     ax = plt.gca()
-    props = dict(boxstyle='round', facecolor='wheat', alpha=alpha)
+    props = dict(boxstyle='round', facecolor='wheat', alpha=alpha, lw=0.5)
     if location == 'top left':
         ha = 'left'
         x = 0.05
@@ -35,7 +86,7 @@ def infobox(text, alpha=0.7, location='top left'):
     else:
         raise Exception, 'This location is not supported yet'
         
-    ax.text(x, y, text, transform=ax.transAxes, va='top', ha=ha, bbox=props)
+    ax.text(x, y, text, transform=ax.transAxes, va='top', ha=ha, bbox=props, fontproperties=myfont['med'])
 
 def bar(x, h, color='#002299', show_stats=False, normed=False):
     '''
