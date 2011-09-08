@@ -236,8 +236,6 @@ def layer_max_in_cloud(data, cloud_id):
 
     return m
     
-    
-
 def main():
     pass
 
