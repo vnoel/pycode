@@ -10,7 +10,9 @@ V. Noel - Created on Thu Jan 27 17:21:26 CET 2011
 
 '''
 
+import numpy as np
 import tables
+from datetime import datetime, timedelta
 
 class MLS(object):
     
@@ -24,14 +26,14 @@ class MLS(object):
         m.close()
     '''
     
-    def __init__(self, filename, type):
+    def __init__(self, filename, mlstype):
         '''
         filename : name of the MLS file
         type : product to read - supported products: 'HNO3', 'H2O'
         '''
         
         self.h5 = tables.openFile(filename, mode='r')
-        self.type = type
+        self.type = mlstype
         self.swathnode = '/HDFEOS/SWATHS/'+self.type
         
     def close(self):
@@ -89,11 +91,23 @@ class MLS(object):
     def time(self):
         '''
         returns time for MLS profiles.
+        Time is number of seconds since 1993-01-01
         shape: ntime
         '''
         geo = self.h5.getNode(self.swathnode, 'Geolocation Fields')
         time = geo.Time.read()
         return time
+        
+    def datetime(self):
+        '''
+        returns datetimes for MLS profiles.
+        shape: ntime
+        '''
+        geo = self.h5.getNode(self.swathnode, 'Geolocation Fields')
+        time = geo.Time.read()
+        datetimes = np.array([datetime(1993,1,1) + timedelta(seconds=t) for t in time])
+        return datetimes
+        
         
 class MLSH2O(MLS):
     '''
