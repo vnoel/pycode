@@ -114,7 +114,7 @@ def bar(x, h, color='#002299', show_stats=False, normed=False):
         avg = np.sum(normdist * x[:-1])
         ax.text(0.05, 0.95, '$\mu = %5.2f $' % avg, transform=ax.transAxes, va='top', bbox=props)
 
-def hist(x, bins=None):
+def hist(x, bins=20):
     '''
     shortcut to create a distribution and plot it.
     '''
@@ -160,6 +160,7 @@ def yaxis_season_dates(ax, days=[1,8,16,24]):
     yax.axis_date()
     yax.set_major_locator(mdates.DayLocator(bymonthday=days))
     yax.set_major_formatter(mdates.DateFormatter('%m-%d'))
+    
     
 def axis_season_dates(ax, days=[1,8,16,24]):
     '''
