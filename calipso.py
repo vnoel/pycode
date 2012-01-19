@@ -11,7 +11,7 @@ LMD/CNRS
 """
 
 # cannot use pytables since calipso files are hdf4.
-from pyhdf.SD import SD
+from pyhdf.SD import SD, SDC
 from scipy.integrate import trapz
 import numpy as np
 import numpy.ma as ma
@@ -47,7 +47,8 @@ else:
     l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.01/','/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v2.01')
     l15dir = ('/bdd/CFMIP/CAL_LID_L1.5',)
     # for level 2, look first in our own data, then on climserv data
-    l2dir = ('/bdd/CFMIP/Lidar_L2', '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
+    l2dir = ('/bdd/CFMIP/Lidar_L2', '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.01', '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.02',
+                '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
 
 def l1_files (y, m, d, mask='*'):
     """returns the list of available CALIOP L1 files matching a date and mask"""
@@ -105,6 +106,10 @@ def l2_cfiles(y, m, d, mask):
 
 def l2_night_files (y, m, d):
     files = l2_files(y, m, d, '*ZN*')
+    return files
+    
+def l2_day_files(y, m, d):
+    files = l2_files(y, m, d, '*ZD*')
     return files
 
 def l2_file_from_orbit(y, m, d, orbit):
@@ -236,7 +241,7 @@ class _Cal:
 
     def __init__(self, filename):
         warnings.simplefilter('ignore', DeprecationWarning)
-        self.hdf = SD(filename)
+        self.hdf = SD(filename, SDC.READ)
         self.filename = filename
         self.orbit = filename[-15:-4]
         self.z = self.orbit[-2:]            # zn or zd
@@ -285,9 +290,6 @@ class Cal1(_Cal):
             print var+' not present in file '+self.filename+' (version too old, maybe ?)'
             return None
             
-        if idx is None:
-            idx = (0, -1)
-            
         this_var = var[:].squeeze()
         if this_var.ndim == 1:
             data = this_var[idx[0]:idx[1]]
@@ -302,8 +304,40 @@ class Cal1(_Cal):
 
         return data
         
+    def utc_time(self, navg=30, idx=(0,-1)):
+        var = self.hdf.select('Profile_UTC_Time')
+        time = var[:].squeeze()
+        time = time[idx[0]:idx[1]]
+        if navg > 1:
+            n = np.size(time, 0)/navg
+            time2 = np.zeros(n)
+            for i in np.arange(n):
+                time2[i] = time[i * navg]
+            time = time2
+            
+        var.endaccess()
+        return time
+            
+        
+    def datetimes(self, navg=30):
+        
+        utc = self.utc_time(navg=navg)
+        datetimes = []
+        for u in utc:
+            y = np.floor(u/10000.)
+            m = np.floor((u - y*10000)/100.)
+            d = np.floor(u - y*10000 - m*100)
+            y = int(y) + 2000
+            m = int(m)
+            d = int(d)
+            seconds_into_day = np.int((u - np.floor(u)) * 24. * 3600.)
+            profile_datetime = datetime.datetime(y, m, d, 0, 0, 0) + datetime.timedelta(seconds=seconds_into_day)
+            datetimes.append(profile_datetime)
+        return np.array(datetimes)
+        
+        
     def time(self, navg=30,idx=(0,-1)):
-        '''
+        """
         Reads time for CALIOP profiles, averaged on navg
         shape [nprof]
         Example:
@@ -341,19 +375,19 @@ class Cal1(_Cal):
         Finds CALIOP profiles that fit in a lon,lat box
         Returns None if no profile is found.
         """
-        lon = hdf.select('Longitude').get()
-        mask1 = (lon >= lonmin) & (lon < lonmax)
-        if not mask1.sum():
-            return None
-
-        lat = hdf.select('Latitude').get()
-        mask2 = (lat >= latmin) & (lat < latmax)
-        idx = np.where(mask1 & mask2)[0]
-
-        if not np.size(idx):
-            return None
-        else:
-            return idx[0], idx[-1]
+        # lon = hdf.select('Longitude').get()
+        # mask1 = (lon >= lonmin) & (lon < lonmax)
+        # if not mask1.sum():
+        #     return None
+        # 
+        # lat = hdf.select('Latitude').get()
+        # mask2 = (lat >= latmin) & (lat < latmax)
+        # idx = np.where(mask1 & mask2)[0]
+        # 
+        # if not np.size(idx):
+        #     return None
+        # else:
+        #     return idx[0], idx[-1]
 
     def surface_elevation (self, navg=30, prof=None, idx=(0,-1)):
         """
@@ -555,21 +589,88 @@ class Cal1(_Cal):
 
     # some display utility functions
     
-    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax):
+    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax, datetime=False, ymin=0, ymax=25):
             import matplotlib.pyplot as plt
+            from pylab import get_cmap
 
             print 'Showing ' + dataname
             print 'Lat range : ', latrange
-
+            
             plt.ioff()
-            plt.figure(figsize=(14,8))
-            plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax)
+            fig = plt.figure(figsize=(20,6))
+            ax = plt.gca()
+            # plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=get_cmap('YlGnBu_r'))
+            # plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=get_cmap('PuBu_r'))
+            plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=get_cmap('gist_stern_r'))
             plt.xlim(latrange[0], latrange[1])
-            plt.ylim(0, 22)
+            plt.ylim(ymin, ymax)
+            if datetime:
+                ax.xaxis.axis_date()
+                fig.autofmt_xdate()
+                plt.xlabel('Time')
+            else:
+                plt.xlabel('Latitude')
+                
             plt.colorbar().set_label(dataname)
-            plt.xlabel('Latitude')
             plt.ylabel('Altitude [km]')
-            plt.title(dataname + ' - CALIOP '+ str(self.date) + ' - '+ self.orbit)
+            plt.title(dataname + ' - CALIOP '+ str(self.date))
+            
+            
+    def peek_atb_time(self, navg=30, mintime=None, maxtime=None):
+        lon, lat = self.coords(navg=navg)
+        atb = self.atb(navg=navg)
+        time = self.datetimes(navg=navg)
+        import matplotlib.dates as mdates
+        numtime = mdates.date2num(time)
+        
+        if mintime is None:
+            mintime = np.min(numtime)
+        else:
+            mintime = mdates.date2num(mintime)
+            
+        if maxtime is None:
+            maxtime = np.max(numtime)
+        else:
+            maxtime = mdates.date2num(maxtime)
+        
+        self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime], 'Coefficient de retrodiffusion [log10]', -3.5, -2, datetime=True)
+        
+        
+    def peek_psc_time(self, navg=30, mintime=None, maxtime=None):
+        atb = self.atb(navg=navg)
+        time = self.datetimes(navg=navg)
+        import matplotlib.dates as mdates
+        
+        print np.min(time), np.max(time)
+        print mintime, maxtime
+
+        numtime = mdates.date2num(time)
+
+        if mintime is None:
+            mintime = np.min(numtime)
+        else:
+            mintime = mdates.date2num(mintime)
+            if mintime < np.min(numtime):
+                print 'Error : mintime < min(time)'
+            
+        if maxtime is None:
+            maxtime = np.max(numtime)
+            if maxtime > np.max(numtime):
+                print 'Error : maxtime > max(time)'
+        else:
+            maxtime = mdates.date2num(maxtime)
+
+        tropo = self.tropopause_height(navg=navg)
+        tropo[tropo > 13] = 11
+        for i, z in enumerate(tropo):
+            idx = (lidar_alt < (z + 3))
+            atb[i,idx] = atb[i,idx] * 0.5
+        atb[atb < 0] = 1e-6
+
+        self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime], 'Coefficient de retrodiffusion (log10)', -3.5, -2.25, datetime=True, ymin=5, ymax=28)
+        import matplotlib.pyplot as plt
+        plt.plot(numtime, tropo + 1, color='green')
+
             
     def peek_atb(self, latrange=(-84,84), navg=120):
         """
@@ -584,6 +685,7 @@ class Cal1(_Cal):
         atb = atb[idx,:]
         print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
         self._peek(lat, lidar_alt, np.log10(atb), latrange, 'Attenuated Total Backscatter', -4, -2)
+
                 
     def peek_depol(self, latrange=(-84,84), navg=120):
         """
@@ -669,6 +771,13 @@ class Cal2(_Cal):
         lat =self._read_var('Latitude', idx=idx)[:,1]
         lon =self._read_var('Longitude', idx=idx)[:,1]
         return lon, lat
+
+    def time(self, idx=(0,-1)):
+        '''
+        returns profile time (TAI)
+        shape [nprof]
+        '''
+        return self._read_var('Profile_Time', idx=idx)[:]
 
     def off_nadir_angle (self, idx=(0, -1)):
         """
@@ -780,9 +889,9 @@ class Cal2(_Cal):
         shape [nprof, nlaymax]
         """
 
-        f = self.flag(hdf, idx=idx)
-        cloudflag_qa = (f & 384) >> 7
-        return cloudflag_qa
+        # f = self.flag(hdf, idx=idx)
+        # cloudflag_qa = (f & 384) >> 7
+        # return cloudflag_qa
 
     def opacity_flag(self, idx=(0,-1)):
         """
@@ -883,7 +992,7 @@ class TestCal1(unittest.TestCase):
         self.assertEqual(nproftotal/15, nprof)
         
     def testNumberOfProfilesIsTheSameInVectors(self):
-        navg = (1, 15, 19, 1000)
+        # navg = (1, 15, 19, 1000)
         lon, lat = self.cal.coords()
         elev = self.cal.surface_elevation()
         self.assertEqual(lon.shape[0], lat.shape[0])
