@@ -40,8 +40,10 @@ class ArrayDict(dict):
             print 'Aggregating data from %d files' % len(filelist)
             
             for f in filelist:
-                
-                this_array = ArrayDict(from_file=f)
+                try:
+                    this_array = ArrayDict(from_file=f)
+                except:
+                    continue
                 self.append(this_array)
             
         if kwargs:
