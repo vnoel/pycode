@@ -590,33 +590,34 @@ class Cal1(_Cal):
     # some display utility functions
     
     def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax, datetime=False, ymin=0, ymax=25):
-            import matplotlib.pyplot as plt
-            from pylab import get_cmap
 
-            print 'Showing ' + dataname
-            print 'Lat range : ', latrange
+        import niceplots
+        
+        import matplotlib.pyplot as plt
+        from pylab import get_cmap
+
+        print 'Showing ' + dataname
+        print 'Lat range : ', latrange
+        
+        plt.ioff()
+        fig = plt.figure(figsize=(20,6))
+        ax = plt.gca()
+        plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=get_cmap('gist_stern_r'))
+        plt.xlim(latrange[0], latrange[1])
+        plt.ylim(ymin, ymax)
+        if datetime:
+            niceplots.axis_set_date_format(ax, format='%H:%M')
+            fig.autofmt_xdate()
+        else:
+            plt.xlabel('Latitude')
             
-            plt.ioff()
-            fig = plt.figure(figsize=(20,6))
-            ax = plt.gca()
-            # plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=get_cmap('YlGnBu_r'))
-            # plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=get_cmap('PuBu_r'))
-            plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=get_cmap('gist_stern_r'))
-            plt.xlim(latrange[0], latrange[1])
-            plt.ylim(ymin, ymax)
-            if datetime:
-                ax.xaxis.axis_date()
-                fig.autofmt_xdate()
-                plt.xlabel('Time')
-            else:
-                plt.xlabel('Latitude')
-                
-            plt.colorbar().set_label(dataname)
-            plt.ylabel('Altitude [km]')
-            plt.title(dataname + ' - CALIOP '+ str(self.date))
+        plt.colorbar().set_label(dataname)
+        plt.ylabel('Altitude [km]')
+        plt.title(dataname + ' - CALIOP '+ str(self.date))
             
             
     def peek_atb_time(self, navg=30, mintime=None, maxtime=None):
+
         lon, lat = self.coords(navg=navg)
         atb = self.atb(navg=navg)
         time = self.datetimes(navg=navg)
