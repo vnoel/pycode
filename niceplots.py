@@ -172,3 +172,10 @@ def axis_season_dates(ax, days=[1,8,16,24]):
     xax.set_major_formatter(mdates.DateFormatter('%m-%d'))
     plt.gcf().autofmt_xdate()
     
+def axis_set_date_format(ax, format='%m-%d'):
+    # cf http://docs.python.org/library/datetime.html#strftime-strptime-behavior
+    xax = ax.xaxis
+    xax.axis_date()
+    xax.set_major_formatter(mdates.DateFormatter(format))
+    
+    
