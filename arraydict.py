@@ -13,21 +13,37 @@ class ArrayDict(dict):
     ArrayDict objects are dictionaries containing named numpy arrays
     '''
     
-    def __init__(self, from_file=None, **kwargs):
+    def __init__(self, from_file=None, from_glob=None, **kwargs):
         '''
         an ArrayDict can be created either empty 
             x = ArrayDict()
         read content from a npz file
             x = ArrayDict('file.npz')
+        or merge content from several npz files
+            x = ArrayDict(from_glob='dir/*.npz')
         or from variables
             x = ArrayDict(lon=lon, lat=lat)
         '''
         dict.__init__(self)
+
         if from_file:
             npz = np.load(from_file)
             for f in npz.files:
                 self[f] = npz[f]
             npz.close()
+
+        if from_glob:
+
+            import glob
+            
+            filelist = glob.glob(from_glob)
+            print 'Aggregating data from %d files' % len(filelist)
+            
+            for f in filelist:
+                
+                this_array = ArrayDict(from_file=f)
+                self.append(this_array)
+            
         if kwargs:
             for key in kwargs:
                 self[key] = kwargs[key]
