@@ -62,6 +62,13 @@ class ArrayDict(dict):
         '''
         np.savez(filename, **self)
 
+    def dump(self, filename):
+        '''
+        save the arrays in a numpy file
+        '''
+        np.savez(filename, **self)
+        
+
     def get_vars(self, varnamelist):
         '''
         input: a list containing names of variables
