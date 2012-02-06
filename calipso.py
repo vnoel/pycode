@@ -589,7 +589,7 @@ class Cal1(_Cal):
 
     # some display utility functions
     
-    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax, datetime=False, ymin=0, ymax=25):
+    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax, datetime=False, ymin=0, ymax=25, cmap=None):
 
         import niceplots
         
@@ -599,10 +599,13 @@ class Cal1(_Cal):
         print 'Showing ' + dataname
         print 'Lat range : ', latrange
         
+        if cmap is None:
+            cmap = get_cmap('gist_stern_r')
+        
         plt.ioff()
         fig = plt.figure(figsize=(20,6))
         ax = plt.gca()
-        plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=get_cmap('gist_stern_r'))
+        plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=cmap)
         plt.xlim(latrange[0], latrange[1])
         plt.ylim(ymin, ymax)
         if datetime:
@@ -617,6 +620,8 @@ class Cal1(_Cal):
             
             
     def peek_atb_time(self, navg=30, mintime=None, maxtime=None):
+
+        from pylab import get_cmap
 
         lon, lat = self.coords(navg=navg)
         atb = self.atb(navg=navg)
@@ -634,7 +639,30 @@ class Cal1(_Cal):
         else:
             maxtime = mdates.date2num(maxtime)
         
-        self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime], 'Coefficient de retrodiffusion [log10]', -3.5, -2, datetime=True)
+        self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime], 'Coefficient de retrodiffusion [log10]', -3.5, -2, datetime=True, cmap=get_cmap('gist_stern_r'))
+        
+    def peek_cr_time(self, navg=30, mintime=None, maxtime=None):
+        
+        from pylab import get_cmap
+        
+        lon, lat = self.coords(navg=navg)
+        atb532 = self.atb(navg=navg)
+        atb1064 = self.atb1064(navg=navg)
+        cr = atb1064 / atb532
+        time = self.datetimes(navg=navg)
+        import matplotlib.dates as mdates
+        numtime = mdates.date2num(time)
+        
+        if mintime is None:
+            mintime = np.min(numtime)
+        else:
+            mintime = mdates.date2num(mintime)
+        if maxtime is None:
+            maxtime = np.max(numtime)
+        else:
+            maxtime = mdates.date2num(maxtime)
+            
+        self._peek(numtime, lidar_alt, cr, [mintime, maxtime], 'Volumic Attenuated Color Ratio', 0, 1.4, datetime=True, cmap=get_cmap('jet'))
         
         
     def peek_psc_time(self, navg=30, mintime=None, maxtime=None):
@@ -711,6 +739,8 @@ class Cal1(_Cal):
         Display a quick look at the color ratio as a function of latitude and altitude.
         """
 
+        from pylab import get_cmap
+
         lon,lat = self.coords(navg=navg)
         total = self.atb(navg=navg)
         total1064 = self.atb1064(navg=navg)
@@ -720,7 +750,7 @@ class Cal1(_Cal):
         cr = cr[idx,:]
         print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
 
-        self._peek(lat, lidar_alt, cr, latrange, 'Volumic Color Ratio', 0, 1.2)
+        self._peek(lat, lidar_alt, cr, latrange, 'Volumic Color Ratio', 0.2, 1.) #, cmap=get_cmap('jet'))
 
 
 
