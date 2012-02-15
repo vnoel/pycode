@@ -37,6 +37,11 @@ class ArrayDict(dict):
             import glob
             
             filelist = glob.glob(from_glob)
+            if not filelist:
+                print 'no file matching pattern', from_glob
+                return
+            
+            filelist.sort()
             print 'Aggregating data from %d files' % len(filelist)
             
             for f in filelist:
