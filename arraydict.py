@@ -8,57 +8,63 @@ Created by Vincent Noel - LMD/CNRS on 2011-11-24.
 
 import numpy as np
 
+
 class ArrayDict(dict):
     '''
     ArrayDict objects are dictionaries containing named numpy arrays
     '''
-    
-    def __init__(self, from_file=None, from_glob=None, **kwargs):
+
+    def __init__(self, from_file=None, **kwargs):
         '''
         an ArrayDict can be created either empty 
             x = ArrayDict()
-        read content from a npz file
+        or filled with content from a npz file
             x = ArrayDict('file.npz')
         or merge content from several npz files
-            x = ArrayDict(from_glob='dir/*.npz')
+        (if there's a * or ? in the filename)
+            x = ArrayDict('dir/*.npz')
         or from variables
             x = ArrayDict(lon=lon, lat=lat)
         '''
         dict.__init__(self)
 
         if from_file:
-            npz = np.load(from_file)
-            for f in npz.files:
-                self[f] = npz[f]
-            npz.close()
+            
+            if ('?' in from_file) or ('*' in from_file):
+                # if from_file looks like a file pattern
 
-        if from_glob:
+                import glob
 
-            import glob
-            
-            filelist = glob.glob(from_glob)
-            if not filelist:
-                print 'no file matching pattern', from_glob
-                return
-            
-            filelist.sort()
-            print 'Aggregating data from %d files' % len(filelist)
-            
-            for f in filelist:
-                try:
-                    this_array = ArrayDict(from_file=f)
-                except:
-                    continue
-                self.append(this_array)
-            
+                filelist = glob.glob(from_file)
+                if not filelist:
+                    print 'no file matching pattern', from_file
+                    return
+
+                filelist.sort()
+                print 'Aggregating data from %d files' % len(filelist)
+
+                for f in filelist:
+                    try:
+                        this_array = ArrayDict(from_file=f)
+                    except:
+                        continue
+                    self.append(this_array)
+                
+            else:
+                
+                npz = np.load(from_file)
+                for f in npz.files:
+                    self[f] = npz[f]
+                npz.close()
+
         if kwargs:
             for key in kwargs:
                 self[key] = kwargs[key]
     
-    
     def append(self, arraydict, axis=0):
         '''
         Appends numpy arrays contained in another arraydict with those present in self.
+        0-d arrays are ignored.
         '''
 
         arrnames = arraydict.keys()
@@ -66,6 +72,8 @@ class ArrayDict(dict):
             return
 
         for arrname in arrnames:
+            if np.shape(arraydict[arrname]) is ():
+                continue
             if arrname in self.keys():
                 self[arrname] = np.concatenate((self[arrname], arraydict[arrname]), axis=axis)
             else:
@@ -79,10 +87,12 @@ class ArrayDict(dict):
         for arrname in self.keys():
             print arrname, ':', self[arrname].shape
             
-    def save(self, filename):
+    def save(self, filename, verbose=True):
         '''
         save the arrays in a numpy file
         '''
+        if verbose:
+            print 'Saving', filename
         np.savez(filename, **self)
 
     def dump(self, filename):
@@ -104,10 +114,10 @@ class ArrayDict(dict):
         
 
     def subset(self, idx):
-        '''
+        """
         filters out the contained variables along their first dimension according to an index vector
         the index vector must have the same number of items in the first dimension as every variable in the arraydict
-        '''
+        """
         
         for arrname in self.keys():
             self[arrname] = self[arrname][idx,...]
