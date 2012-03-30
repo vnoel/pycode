@@ -22,11 +22,63 @@ myfont['small'] = fm.FontProperties(fname=mundofont, size=12)
 myfont['med'] = fm.FontProperties(fname=mundofont, size=14)
 myfont['big'] = fm.FontProperties(fname=mundofontbold, size=18)
 
+elev_cmap = 'RdBu_r'
+
+
+def savefig(figname, author='VNoel, LMD/CNRS', title=None):
+    '''
+    Save figure
+    if format is png or pdf (based on the extension), save
+    the calling script full path as a tag + author
+    '''
+
+    import os, sys
+
+    # save script called for figure generation
+    source = os.path.abspath(sys.argv[0])
+
+    if figname.endswith('pdf'):
     
+        from matplotlib.backends.backend_pdf import PdfPages
+        
+        pdf = PdfPages(figname)
+        pdf.savefig()
+        d = pdf.infodict()
+        
+        d['Subject'] = source        
+        if author is not None:
+            d['Author'] = author
+        
+        pdf.close()
+        
+    elif figname.endswith('png'):
+    
+        from PIL import Image, PngImagePlugin
+
+        plt.savefig(figname)
+        im = Image.open(figname)
+
+        meta = PngImagePlugin.PngInfo()
+        meta.add_text('Source', source)
+        if author is not None:
+            meta.add_text('Author', author)
+
+        im.save(figname, 'PNG', pnginfo=meta)
+        
+    else:
+    
+        plt.savefig(figname)
+        
 
 def legend(numpoints=2):
     leg = plt.legend(prop=myfont['med'], numpoints=numpoints)
     plt.setp(leg.get_frame(), lw=0.5)
+
+
+def segcmap(basecmap='RdBu_r', nlev=5):
+    import matplotlib.cm as cm
+    palette = cm.get_cmap(basecmap, nlev)
+    return palette
 
 
 def beautify_colorbar(cb, title=None):
@@ -46,8 +98,7 @@ def beautify_axis(ax):
     plt.setp(ax.xaxis.label, fontproperties=myfont['med'])
     plt.setp(ax.yaxis.label, fontproperties=myfont['med'])
     plt.setp(ax.title, fontproperties=myfont['big'])
-    
-    
+        
 
 def beautify_axis_font(fig=None, ax=None, cb=None, leg=None):
     '''
