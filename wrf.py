@@ -48,6 +48,15 @@ class wrf(object):
         lat = self.nc.variables['XLAT'][it,...]
         return lon, lat
         
+    def ntime(self):
+        return self.nc.variables['Times'].shape[0]
+
+    def times(self):
+        t = self.nc.variables['Times']
+        ts = []
+        ts = [ttxt.tostring() for ttxt in t[:,:]]
+        return t
+
     def time(self, it=0):
         t = self.nc.variables['Times'][it,:]
         t = t.tostring()
