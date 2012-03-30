@@ -14,8 +14,8 @@ import numpy as np
 import tables
 from datetime import datetime, timedelta
 
+
 class MLS(object):
-    
     '''
     Generic parent class to read MLS objects.
     Use product-specific classes instead.
@@ -34,14 +34,14 @@ class MLS(object):
         
         self.h5 = tables.openFile(filename, mode='r')
         self.type = mlstype
-        self.swathnode = '/HDFEOS/SWATHS/'+self.type
+        self.swathnode = '/HDFEOS/SWATHS/' + self.type
         
     def close(self):
         '''
         close an opened MLS object.
         '''
         self.h5.close()
-        
+    
     def coords(self):
         '''
         returns the coordinates of MLS profiles.
@@ -51,7 +51,7 @@ class MLS(object):
         lat = geo.Latitude.read()
         lon = geo.Longitude.read()
         return lon, lat
-        
+    
     def levels(self):
         '''
         returns pressure levels of MLS profiles
@@ -60,7 +60,7 @@ class MLS(object):
         geo = self.h5.getNode(self.swathnode, 'Geolocation Fields')
         levels = geo.Pressure.read()
         return levels
-        
+    
     def _L2gpValue(self):
         '''
         returns data product containing MLS profiles
@@ -69,7 +69,7 @@ class MLS(object):
         data = self.h5.getNode(self.swathnode, 'Data Fields')
         h2o = data.L2gpValue.read()
         return h2o
-        
+    
     def precision(self):
         '''
         returns MLS precision field
@@ -78,7 +78,7 @@ class MLS(object):
         data = self.h5.getNode(self.swathnode, 'Data Fields')
         precision = data.L2gpPrecision.read()
         return precision
-        
+    
     def quality(self):
         '''
         returns MLS quality field
@@ -87,7 +87,7 @@ class MLS(object):
         data = self.h5.getNode(self.swathnode, 'Data Fields')
         precision = data.Quality.read()
         return precision
-        
+    
     def time(self):
         '''
         returns time for MLS profiles.
@@ -97,7 +97,7 @@ class MLS(object):
         geo = self.h5.getNode(self.swathnode, 'Geolocation Fields')
         time = geo.Time.read()
         return time
-        
+    
     def datetime(self):
         '''
         returns datetimes for MLS profiles.
@@ -105,7 +105,7 @@ class MLS(object):
         '''
         geo = self.h5.getNode(self.swathnode, 'Geolocation Fields')
         time = geo.Time.read()
-        datetimes = np.array([datetime(1993,1,1) + timedelta(seconds=t) for t in time])
+        datetimes = np.array([datetime(1993, 1, 1) + timedelta(seconds=t) for t in time])
         return datetimes
         
         
@@ -122,7 +122,7 @@ class MLSH2O(MLS):
 
     def __init__(self, filename):
         MLS.__init__(self, filename, 'H2O')
-
+    
     def H2O(self):
         '''
         return numpy array containing the H2O product from the MLS file.
@@ -141,6 +141,6 @@ class MLSHNO3(MLS):
         MLS.__init__(self, filename, 'HNO3')
 
     def HNO3(self):
-        data =self._L2gpValue()
+        data = self._L2gpValue()
         return data
 
