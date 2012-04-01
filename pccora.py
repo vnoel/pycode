@@ -3,8 +3,14 @@
 '''
 Module to read Radiosonde measurement files in the PCCORA proprietary binary format.
 See http://badc.nerc.ac.uk/data/ukmo-rad-hires/pc-coradata.html
-'''
 
+Invalid values are masked in the output
+
+This module can be called to print information out of a PCCORA file.
+VNoel 2012 
+
+dependencies: numpy, plac to run the module standalone (easy to remove)
+'''
 
 import numpy as np
 from datetime import datetime, timedelta
