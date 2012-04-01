@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Read files in the PCCORA proprietary binary format.
+Module to read Radiosonde measurement files in the PCCORA proprietary binary format.
 See http://badc.nerc.ac.uk/data/ukmo-rad-hires/pc-coradata.html
 '''
 
