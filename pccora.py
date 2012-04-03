@@ -133,7 +133,7 @@ def pccora_read(file):
     ident['lat' ] *= 0.01
     ident['surfpress'] *= 0.1
     ident['datetime'] = datetime(ident['year'], ident['month'], ident['day'], ident['hour'], ident['min'])
-    ident['launchtime'] = ident['datetime'] + timedelta(seconds=ident['ascenttime'])
+    ident['launchtime'] = ident['datetime'] + timedelta(seconds=ident['ascenttime'][0])
     
     junk = np.fromfile(fid, dtype=syspar, count=1)
     
@@ -142,6 +142,9 @@ def pccora_read(file):
     data = mask_missing_values(data)
     data = convert_units(data)
     data['datetime'] = create_data_datetimes(ident['launchtime'], data['time'])
+    # attempt at correcting values
+    # pas evident, personne n'explique comment il faut faire...
+    data['temp'] = data['temp'] + 0.1 * ident['tempcorr'] 
 
     hires = np.fromfile(fid, dtype=pccoradata, count=head['nrecdata'])
     hires = convert_object_to_dict(hires, pccoradata.names)
