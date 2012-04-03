@@ -24,7 +24,7 @@ pccoraheader = np.dtype( [ ('copyright', 'a20'), ('lenident', i), ('lensyspar', 
 pccoraident = np.dtype( [ ('stationtype', i), ('region', i), ('block', i), ('station', i),
                             ('lat', i), ('long', i), ('alt', i), ('windunit', i), ('teleheading', i),
                             ('reserved', i), ('soundingtype', i), ('startmode', i),
-                            ('asenttime', i), ('pturate', i),
+                            ('ascenttime', i), ('pturate', i),
                             ('cardnum', 'i4'),
                             ('year', i), ('month', i), ('day', i), ('jday', i), ('hour', i), ('min', i),
                             ('messyear', i), ('messmonth', i), ('messday', i), ('messhour', i),
@@ -51,11 +51,12 @@ pccoradata = np.dtype( [ ('time', 'f4'), ('logpress', i), ('temp', i), ('hum', i
                         ('az', i), ('distance', i), ('lat', i), ('long', i), 
                         ('sigkey', '2b1'), ('editedsigkey', '2b1'), 
                         ('radarheight', i) ] )
-             
+
+rsfilepath = '/users/vnoel/Projects/rs/'
              
 def find_pccora_file(date):
     import glob
-    basepath = '/users/noel/Projects/blue5/rs/%04d/%02d/' % (date.year, date.month)
+    basepath = rsfilepath + '/%04d/%02d/' % (date.year, date.month)
     files = glob.glob(basepath + 'radiosonde_rothera_%04d%02d%02d*.edt' % (date.year, date.month, date.day))
     if not files:
         return None
@@ -132,6 +133,7 @@ def pccora_read(file):
     ident['lat' ] *= 0.01
     ident['surfpress'] *= 0.1
     ident['datetime'] = datetime(ident['year'], ident['month'], ident['day'], ident['hour'], ident['min'])
+    ident['launchtime'] = ident['datetime'] + timedelta(seconds=ident['ascenttime'])
     
     junk = np.fromfile(fid, dtype=syspar, count=1)
     
@@ -139,13 +141,13 @@ def pccora_read(file):
     data = convert_object_to_dict(data, pccoradata.names)
     data = mask_missing_values(data)
     data = convert_units(data)
-    data['datetime'] = create_data_datetimes(ident['datetime'], data['time'])
+    data['datetime'] = create_data_datetimes(ident['launchtime'], data['time'])
 
     hires = np.fromfile(fid, dtype=pccoradata, count=head['nrecdata'])
     hires = convert_object_to_dict(hires, pccoradata.names)
     hires = mask_missing_values(hires)
     hires = convert_units(hires)
-    hires['datetime'] = create_data_datetimes(ident['datetime'], data['time'])
+    hires['datetime'] = create_data_datetimes(ident['launchtime'], data['time'])
     
     fid.close()
     
