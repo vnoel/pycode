@@ -86,7 +86,13 @@ def beautify_colorbar(cb, title=None):
     cb.ax.set_yticklabels(ylabels, fontproperties=myfont['small'])
     if title:
         cb.set_label(title, fontproperties=myfont['small'])
+
     
+def cb_right(title=None):
+    ax = plt.axes([0.92, 0.25, 0.02, 0.5])
+    cb = plt.colorbar(cax=ax)
+    beautify_colorbar(cb, title='H$_2$O [ppmv]')
+
 
 def beautify_axis(ax):
     fig = plt.gcf()
