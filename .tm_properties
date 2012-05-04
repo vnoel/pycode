@@ -1,0 +1,9 @@
+TM_GIT = "/usr/local/git/bin/git"
+
+exclude = "*.pyc"
+include = ".tm_properties"
+softTabs = true
+tabSize = 4
+
+[ "*.py" ]
+softWare = true
