@@ -12,6 +12,7 @@ VNoel 2012
 dependencies: numpy, plac to run the module standalone (easy to remove)
 '''
 
+import os
 import numpy as np
 from datetime import datetime, timedelta
 
@@ -52,11 +53,13 @@ pccoradata = np.dtype( [ ('time', 'f4'), ('logpress', i), ('temp', i), ('hum', i
                         ('sigkey', '2b1'), ('editedsigkey', '2b1'), 
                         ('radarheight', i) ] )
 
-rsfilepath = '/users/vnoel/Projects/rs/'
+rsfilepath = '/users/noel/Projects/blue5/rs/'
              
 def find_pccora_file(date):
     import glob
     basepath = rsfilepath + '/%04d/%02d/' % (date.year, date.month)
+    if not os.path.isdir(basepath):
+        exit('Cannot find RS path')
     files = glob.glob(basepath + 'radiosonde_rothera_%04d%02d%02d*.edt' % (date.year, date.month, date.day))
     if not files:
         return None
@@ -106,6 +109,10 @@ def convert_units(data):
     data['long'] *= 0.01
     data['lat'] *= 0.01
     data['windspeed'] *= 0.1
+    data['u'] *= 0.01
+    data['v'] *= 0.01
+    data['dew'] *= 0.1
+    data['mix'] *= 0.1
   
     return data
     
@@ -142,9 +149,6 @@ def pccora_read(file):
     data = mask_missing_values(data)
     data = convert_units(data)
     data['datetime'] = create_data_datetimes(ident['launchtime'], data['time'])
-    # attempt at correcting values
-    # pas evident, personne n'explique comment il faut faire...
-    data['temp'] = data['temp'] + 0.1 * ident['tempcorr'] 
 
     hires = np.fromfile(fid, dtype=pccoradata, count=head['nrecdata'])
     hires = convert_object_to_dict(hires, pccoradata.names)

@@ -121,6 +121,8 @@ def cb_right(title=None):
 
 def beautify_title(ax):
     plt.setp(ax.title, fontproperties=myfont['big'])
+    beautify_colorbar(cb, title='H$_2$O [ppmv]')
+
 
 def beautify_axis(ax):
     fig = plt.gcf()
@@ -174,6 +176,7 @@ def infobox(text, alpha=0.7, location='top left'):
         
     ax.text(x, y, text, transform=ax.transAxes, va='top', ha=ha, bbox=props, fontproperties=myfont['med'])
 
+
 def bar(x, h, color='#002299', show_stats=False, normed=False):
     """
     plots a nice histogram.
@@ -200,6 +203,7 @@ def bar(x, h, color='#002299', show_stats=False, normed=False):
         avg = np.sum(normdist * x[:-1])
         ax.text(0.05, 0.95, '$\mu = %5.2f $' % avg, transform=ax.transAxes, va='top', bbox=props)
 
+
 def hist(x, bins=20):
     '''
     shortcut to create a distribution and plot it.
@@ -207,11 +211,13 @@ def hist(x, bins=20):
     h, xe = np.histogram(x, bins=bins)
     bar(xe, h)
 
+
 def ygrid(color='grey'):
     '''
     Activates the grid on the y-axis for the active axis.
     '''
     plt.gca().yaxis.grid(True, color=color)
+
 
 def xgrid(color='grey'):
     '''
@@ -219,6 +225,7 @@ def xgrid(color='grey'):
     '''
     plt.gca().xaxis.grid(True, color=color)
     
+
 def shade_x_areas(ax, x, areas, color='grey'):
     '''
     shade areas delimited by horizontal points
@@ -227,6 +234,7 @@ def shade_x_areas(ax, x, areas, color='grey'):
     ymin, ymax = ax.get_ylim()
     collection = collections.BrokenBarHCollection.span_where(x, ymin=ymin, ymax=ymax, where=areas, color=color, alpha=0.2)
     ax.add_collection(collection)
+    
     
 def shade_dates_areas(ax, dates, areas, color='grey'):
     '''
@@ -237,6 +245,7 @@ def shade_dates_areas(ax, dates, areas, color='grey'):
     '''
     x = mdates.date2num(dates)
     shade_x_areas(ax, x, areas, color=color)
+    
     
 def yaxis_season_dates(ax, days=[1,8,16,24]):
     '''

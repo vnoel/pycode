@@ -5,13 +5,16 @@
 Useful function for studying PSCs
 '''
 
-ID_ALL = 0b1111
-ID_STS = 0b0001
-ID_NAT = 0b0010
-ID_ICE = 0b0100
-ID_UNKNOWN = 0b1000
+ID_ALL     = 0b11111
+ID_STS     = 0b00001
+ID_NAT     = 0b00010
+ID_ICE     = 0b00100
+ID_ENHNAT  = 0b01000
+ID_UNKNOWN = 0b10000
 
-psc_id = {'unknown':ID_UNKNOWN, 'all':ID_ALL, 'STS':ID_STS, 'NAT':ID_NAT, 'Ice':ID_ICE}
+# ID_ENHNAT is the "Mix2-enh" from Pitts et al. 2011 (ACP)
+
+psc_id = {'unknown':ID_UNKNOWN, 'all':ID_ALL, 'STS':ID_STS, 'NAT':ID_NAT, 'Ice':ID_ICE, 'ENHNAT':ID_ENHNAT}
 
 def classify_psc_type(r, depol):
     '''
@@ -32,6 +35,9 @@ def classify_psc_type(r, depol):
         psc_type = psc_id['Ice']
     elif (r >= sts_min_r) and (depol < sts_max_depol) and (depol >= -0.2):
         psc_type = psc_id['STS']
+    elif (r > 2) and (r < 5) and (depol > 0.1):
+        # mix2 enhanced NAT
+        psc_type = psc_id['ENHNAT']
     elif (depol > sts_max_depol) and (depol < 0.8) and (r < nat_max_r) and (r > 1.0):
         psc_type = psc_id['NAT']
     elif (depol < sts_max_depol) and (depol >= 0.) and (r < sts_min_r) and (r > 1.0):
