@@ -11,12 +11,18 @@ plotting utilities
 
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
+from matplotlib.ticker import FuncFormatter
 import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
 import numpy as np
+import os
 
-mundofont = '/users/noel/.fonts/MundoSansStd.otf'
-mundofontbold = '/users/noel/.fonts/MundoSansStd-Med.otf'
+if 'pistachio' in os.uname()[1]:
+    homedir = '/users/vnoel'
+else:
+    homedir = '/users/noel'
+mundofont = homedir + '/.fonts/MundoSansStd.otf'
+mundofontbold = homedir + '/.fonts/MundoSansStd-Med.otf'
 myfont = {}
 myfont['small'] = fm.FontProperties(fname=mundofont, size=12)
 myfont['med'] = fm.FontProperties(fname=mundofont, size=14)
@@ -70,23 +76,51 @@ def savefig(figname, author='VNoel, LMD/CNRS', title=None):
         plt.savefig(figname)
         
 
-def legend(numpoints=2):
-    leg = plt.legend(prop=myfont['med'], numpoints=numpoints)
+def legend(numpoints=2, **kwargs):
+    leg = plt.legend(prop=myfont['med'], fancybox=True, numpoints=numpoints, **kwargs)
     plt.setp(leg.get_frame(), lw=0.5)
 
 
-def segcmap(basecmap='RdBu_r', nlev=5):
+def segcmap(basecmap='jet', nlev=5):
+    # use : pcolor(cmap=segcmap)
     import matplotlib.cm as cm
     palette = cm.get_cmap(basecmap, nlev)
     return palette
 
 
-def beautify_colorbar(cb, title=None):
+def segcmap_elev(basecmap='RdBu_r', nlev=5):
+    # use : pcolor(cmap=segcmap)
+    import matplotlib.cm as cm
+    palette = cm.get_cmap(basecmap, nlev)
+    return palette
+    
+
+def beautify_colorbar(cb, title=None, ticks=None):
     ylabels = [yt.get_text() for yt in cb.ax.get_yticklabels()]
     cb.ax.set_yticklabels(ylabels, fontproperties=myfont['small'])
     if title:
         cb.set_label(title, fontproperties=myfont['small'])
+    if ticks is not None:
+        cb.set_ticks(ticks)
+
+
+def lon_formatter_func(x, pos):
+    if x >= 0:
+        return (u'%3.0f°E' % x)
+    else:
+        return (u'%3.0f°W' % -x)
+
+lon_formatter = FuncFormatter(lon_formatter_func)
+
     
+def cb_right(title=None):
+    ax = plt.axes([0.92, 0.25, 0.02, 0.5])
+    cb = plt.colorbar(cax=ax)
+    beautify_colorbar(cb, title=title)
+
+
+def beautify_title(ax):
+    plt.setp(ax.title, fontproperties=myfont['big'])
 
 def beautify_axis(ax):
     fig = plt.gcf()
@@ -97,7 +131,7 @@ def beautify_axis(ax):
     ax.set_yticklabels(ylabels, fontproperties=myfont['small'])
     plt.setp(ax.xaxis.label, fontproperties=myfont['med'])
     plt.setp(ax.yaxis.label, fontproperties=myfont['med'])
-    plt.setp(ax.title, fontproperties=myfont['big'])
+    beautify_title(ax)
         
 
 def beautify_axis_font(fig=None, ax=None, cb=None, leg=None):
@@ -116,6 +150,7 @@ def beautify_axis_font(fig=None, ax=None, cb=None, leg=None):
     if cb:
         beautify_colorbar(cb)
 
+    
 def infobox(text, alpha=0.7, location='top left'):
     """
     plots a box containing text in a corner of the active figure.
