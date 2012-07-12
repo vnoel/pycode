@@ -123,10 +123,6 @@ class ArrayDict(dict):
             self[arrname] = self[arrname][idx,...]
         
 
-def main():
+class arraydict(ArrayDict):
     pass
-
-
-if __name__ == '__main__':
-    main()
 
