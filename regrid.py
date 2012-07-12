@@ -10,6 +10,25 @@ import numpy as np
 from scipy.interpolate import interp1d
 from datetime import datetime, timedelta
 
+def remean(lon, lat, var, lonstep, latstep):
+    lonmin, lonmax = np.min(lon), np.max(lon)
+    latmin, latmax = np.min(lat), np.max(lat)
+    newlon = np.r_[lonmin:lonmax+lonstep:lonstep]
+    newlat = np.r_[latmin:latmax+latstep:latstep]
+    nlon = np.size(newlon)
+    nlat = np.size(newlat)
+    newvar = np.zeros([nlon, nlat])
+    for i in range(nlon-1):
+        idxlon = (lon >= newlon[i]) & (lon < newlon[i+1])
+        for j in range(nlat-1):
+            idxlat = (lat >= newlat[j]) & (lat < newlat[j+1])
+            varslice = var[idxlon,:][:,idxlat]
+            idx = np.isfinite(varslice)
+            newvar[i,j] = np.mean(varslice[idx])
+            # newvar[i,j] = np.mean(var[idxlon,:][:,idxlat])
+
+    return newvar, newlon, newlat
+
 def remap(lon, lat, var, lonstep, latstep):
     lonmin, lonmax = np.min(lon), np.max(lon)
     latmin, latmax = np.min(lat), np.max(lat)
