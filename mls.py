@@ -15,6 +15,9 @@ import tables
 from datetime import datetime, timedelta
 
 
+mlspath = '/homedata/noel/Data/MLS/'
+
+
 class MLS(object):
     '''
     Generic parent class to read MLS objects.
@@ -69,6 +72,16 @@ class MLS(object):
         data = self.h5.getNode(self.swathnode, 'Data Fields')
         h2o = data.L2gpValue.read()
         return h2o
+        
+    def data_info(self):
+        path = self.swathnode + '/Data Fields/L2gpValue'
+        info = {
+            'missing_value':self.h5.getNodeAttr(path, 'MissingValue')[0],
+            'units':self.h5.getNodeAttr(path, 'Units'),
+            'title':self.h5.getNodeAttr(path, 'Title'),
+            'fill_value':self.h5.getNodeAttr(path, '_FillValue')[0]
+        }
+        return info
     
     def precision(self):
         '''
@@ -109,6 +122,24 @@ class MLS(object):
         return datetimes
         
         
+class MLSCO(MLS):
+    '''
+    Class to read MLS CO products
+    '''
+    
+    def __init__(self, filename):
+        MLS.__init__(self, filename, 'CO')
+        
+    def CO(self):
+        '''
+        returns numpy array containing the CO product from MLS file
+        shape (ntime, nlevels)
+        '''
+        data = self._L2gpValue()
+        return data
+        
+        
+        
 class MLSH2O(MLS):
     '''
     Class to read MLS H2O products.
@@ -143,4 +174,10 @@ class MLSHNO3(MLS):
     def HNO3(self):
         data = self._L2gpValue()
         return data
-
+        
+        
+if __name__ == '__main__':
+    testco = '/homedata/noel/Data/MLS/2007/MLS-Aura_L2GP-CO_v03-30-c01_2007d239.he5'
+    mlsco = MLSCO(testco)
+    print mlsco.data_info()
+    mlsco.close()
