@@ -110,7 +110,15 @@ def lon_formatter_func(x, pos):
     else:
         return (u'%3.0f°W' % -x)
 
+
+def lat_formatter_func(x, pos):
+    if x >= 0:
+        return (u'%3.0f°N' % x)
+    else:
+        return (u'%3.0f°S' % -x)
+
 lon_formatter = FuncFormatter(lon_formatter_func)
+lat_formatter = FuncFormatter(lat_formatter_func)
 
     
 def cb_right(title=None):
@@ -121,7 +129,7 @@ def cb_right(title=None):
 
 def beautify_title(ax):
     plt.setp(ax.title, fontproperties=myfont['big'])
-    beautify_colorbar(cb, title='H$_2$O [ppmv]')
+    # beautify_colorbar(cb, title='H$_2$O [ppmv]')
 
 
 def beautify_axis(ax):
@@ -246,6 +254,24 @@ def shade_dates_areas(ax, dates, areas, color='grey'):
     x = mdates.date2num(dates)
     shade_x_areas(ax, x, areas, color=color)
     
+    
+def xaxis_year_month(ax):
+    
+    ax.xaxis.axis_date()
+    
+    ax.xaxis.set_minor_locator(mdates.MonthLocator(range(2,13)))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter('%b'))
+    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+    
+    maxlabels=[tick.label1 for tick in ax.xaxis.get_major_ticks()]
+    plt.setp(maxlabels, rotation=30, fontsize=10, ha='right', weight='bold')
+
+    minlabels=[tick.label1 for tick in ax.xaxis.get_minor_ticks()]
+    plt.setp(minlabels, rotation=30, fontsize=10, ha='right')
+    
+    ax.xaxis.grid(True, 'minor')
+
     
 def yaxis_season_dates(ax, days=[1,8,16,24]):
     '''
