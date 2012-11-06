@@ -225,7 +225,7 @@ def _array_average(a0, navg, weighted=False):
         if weighted:
             a[i, :] = np.average(a0[n0:n0 + navg, :], axis=0, weights=w)
         else:
-            a[i, :] = a0[n0:n0 + navg - 1, :].mean(axis=0)
+            a[i, :] = np.mean(a0[n0:n0 + navg - 1, :],axis=0)
     return a
 
 
@@ -426,6 +426,12 @@ class Cal1(_Cal):
         if prof:
             atb = atb[prof, :]
         return atb
+        
+    def ccu_532(self, navg=30, prof=None, idx=(0, -1)):
+        au = self._read_var('Calibration_Constant_Uncertainty_532', navg, idx=idx)
+        if prof:
+            au = au[prof,:]
+        return au
 
     def atb1064(self, navg=30, prof=None, idx=(0, -1)):
         """
@@ -543,7 +549,7 @@ class Cal1(_Cal):
         return coef
         
     def mol_on_lidar_alt_calibrated(self, navg=30, prof=None, alt=lidar_alt,
-         navgh=50, metalt=met_alt, idx=(0, -1), zcal=(30, 34)):
+         navgh=50, metalt=met_alt, idx=(0, -1), zcal=(30, 34), atb=None):
         """
         Returns an estimate of the molecular backscatter at 532 nm, computed
         from the molecular number density calibrated on
@@ -551,15 +557,22 @@ class Cal1(_Cal):
         using the calibration coefficient returned
         from mol_calibration_coef().
         Shape: [nprof, nz]
+        
+        atb can be passed as an argument if it's been read and averaged already.
         """
         mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt,
             metalt=metalt, idx=idx)
-        atb = self.atb(navg=navg, prof=prof, idx=idx)
+        if atb is None:
+            atb = self.atb(navg=navg, prof=prof, idx=idx)
         
         coef = self.mol_calibration_coef(mol=mol, atb=atb, zmin=zcal[0],
             zmax=zcal[1], navgh=navgh)
-        for i in np.arange(mol.shape[0]):
-            mol[i, :] *= coef[i]
+            
+        # x * y is equivalent to x[:,i] * y[i]
+        # mol is [i,:], so we need to rotate it twice
+        mol = mol.T
+        mol *= coef
+        mol = mol.T
             
         return mol
     
