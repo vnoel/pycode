@@ -830,7 +830,7 @@ class Cal2(_Cal):
     def _read_var(self, var, idx=(0, -1)):
         hdfvar = self.hdf.select(var)
         if idx[0] is 0 and idx[1] is -1:
-            data = hdfvar[...]
+            data = hdfvar[:]
         else:
             if len(hdfvar.dimensions()) == 1:
                 data = hdfvar[idx[0]:idx[1]]
