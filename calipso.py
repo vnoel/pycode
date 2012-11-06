@@ -900,6 +900,42 @@ class Cal2(_Cal):
             datetimes.append(profile_datetime)
         return np.array(datetimes)
 
+
+    def datetime2(self, idx=(0, -1)):
+        '''
+        Returns an array of datetime objects based on utc_time values
+        this version is 5 times faster than the datetime function above. 
+        Is it worth it ? not sure.
+        '''
+        
+        def _decdate_to_ymd(decdate):
+
+            y = np.floor(decdate / 10000.)
+            remainder = decdate - y * 10000
+            m = np.floor(remainder / 100.)
+            d = np.floor(remainder - m * 100)
+        
+            return y + 2000, m, d
+
+        utc = self.utc_time(idx=idx)
+        seconds_into_day = ((utc - np.floor(utc)) * 24. * 3600. )
+
+        # first let's check if the orbit spans more than a single date
+        y0, m0, d0 = _decdate_to_ymd(utc[0])
+        y1, m1, d1 = _decdate_to_ymd(utc[-1])
+        if d0==d1:
+            # orbit spans a single date
+            # thus we can be a little faster
+            datetimes = np.array(datetime.datetime(int(y0), int(m0), int(d0), 0, 0, 0)) + np.array([datetime.timedelta(seconds=int(ss)) for ss in seconds_into_day])
+        else:
+            # orbits spans more than a day, we have to compute everything
+            print 'multi date', y0, m0, d0, y1, m1, d1
+            y, m, d = _decdate_to_ymd(utc)
+            datetimes = [datetime.datetime(int(yy), int(mm), int(dd), 0, 0, 0) + datetime.timedelta(seconds=int(ss)) for yy,mm,dd,ss in zip(y,m,d,seconds_into_day)]
+
+        return np.array(datetimes)
+        
+
     def off_nadir_angle(self, idx=(0, -1)):
         """
         Returns the off-nadir-angle, in deg, for profiles.
