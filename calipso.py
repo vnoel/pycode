@@ -319,11 +319,20 @@ class Cal1(_Cal):
             
         this_var = var[:].squeeze()
         if this_var.ndim == 1:
-            data = this_var[idx[0]:idx[1]]
+            
+            if idx[0] is 0 and idx[1] is -1:
+                data = this_var[:]
+            else:
+                data = this_var[idx[0]:idx[1]]
+                
             if navg > 1:
                 data = _vector_average(data, navg)
         else:
-            data = this_var[idx[0]:idx[1], :]
+            
+            if idx[0] is 0 and idx[1] is -1:
+                data = this_var[...]
+            else:
+                data = this_var[idx[0]:idx[1], :]
             if navg > 1:
                 data = _array_average(data, navg)
 
