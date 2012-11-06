@@ -819,12 +819,15 @@ class Cal2(_Cal):
     """
 
     def _read_var(self, var, idx=(0, -1)):
-        var = self.hdf.select(var)
-        if len(var.dimensions()) == 1:
-            data = var[idx[0]:idx[1]]
+        hdfvar = self.hdf.select(var)
+        if idx[0] is 0 and idx[1] is -1:
+            data = hdfvar[...]
         else:
-            data = var[idx[0]:idx[1], :]
-        var.endaccess()
+            if len(hdfvar.dimensions()) == 1:
+                data = hdfvar[idx[0]:idx[1]]
+            else:
+                data = hdfvar[idx[0]:idx[1], :]
+        hdfvar.endaccess()
         return data
 
     def lat(self, idx=(0, -1)):
@@ -856,6 +859,32 @@ class Cal2(_Cal):
         shape [nprof]
         '''
         return self._read_var('Profile_Time', idx=idx)[:]
+
+    def utc_time(self, idx=(0, -1)):
+        '''
+        Returns utc time value (decimal time)
+        '''
+        time = self._read_var('Profile_UTC_Time', idx=idx)[:]
+        return time
+
+    def datetime(self, idx=(0, -1)):
+        '''
+        Returns an array of datetime objects based on utc_time values
+        '''
+        utc = self.utc_time(idx=idx)
+        datetimes = []
+        for u in utc:
+            y = np.floor(u / 10000.)
+            m = np.floor((u - y * 10000) / 100.)
+            d = np.floor(u - y * 10000 - m * 100)
+            y = int(y) + 2000
+            m = int(m)
+            d = int(d)
+            seconds_into_day = np.int((u - np.floor(u)) * 24. * 3600.)
+            profile_datetime = datetime.datetime(y, m, d, 0, 0, 0) + \
+                datetime.timedelta(seconds=seconds_into_day)
+            datetimes.append(profile_datetime)
+        return np.array(datetimes)
 
     def off_nadir_angle(self, idx=(0, -1)):
         """
