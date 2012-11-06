@@ -844,6 +844,11 @@ class Cal2(_Cal):
         Returns latitude for profiles.
         shape [nprof]
         """
+        
+        # the [:,1] is because level 2 vectors contain 3 values, that describe
+        # the parameter for the first profile of the averaged section, the last profile,
+        # and an average. The middle value is the average, that's what we use.
+        
         return self._read_var('Latitude', idx=idx)[:, 1]
 
     def lon(self, idx=(0, -1)):
@@ -873,7 +878,7 @@ class Cal2(_Cal):
         '''
         Returns utc time value (decimal time)
         '''
-        time = self._read_var('Profile_UTC_Time', idx=idx)[:]
+        time = self._read_var('Profile_UTC_Time', idx=idx)[:,1]
         return time
 
     def datetime(self, idx=(0, -1)):
