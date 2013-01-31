@@ -48,8 +48,8 @@ else:
     l15dir = ('/bdd/CFMIP/CAL_LID_L1.5',)
     # for level 2, look first in our own data, then on climserv data
     l2dir = ('/bdd/CFMIP/Lidar_L2',
-        '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.01',
-        '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.02',
+        '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.02',
+        '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01',
         '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
 
 
@@ -435,6 +435,18 @@ class Cal1(_Cal):
         if prof:
             atb = atb[prof, :]
         return atb
+        
+    def parallel_rms_baseline(self, navg=30, prof=None, idx=(0, -1)):
+        '''
+        Reads the Parallel RMS Baseline at 532nm from CALIOP file
+        shape [nprof]
+        JP Vernier utilise un seuil a 150 photons pour decider si un profil est bon ou pas
+        units = counts
+        '''
+        rms = self._read_var('Parallel_RMS_Baseline_532', navg, idx=idx)
+        if prof:
+            rms = rms[prof,:]
+        return rms
         
     def ccu_532(self, navg=30, prof=None, idx=(0, -1)):
         au = self._read_var('Calibration_Constant_Uncertainty_532', navg, idx=idx)
