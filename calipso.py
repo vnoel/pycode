@@ -178,7 +178,7 @@ def _integrate_signal(data, alt):
     return integrale
 
 
-def _vector_average(v0, navg):
+def _vector_average(v0, navg, missing=None, valid=None):
     """ v = _vector_average (v0, navg)
         moyenne le vector v0 tous les navg points."""
 
@@ -187,18 +187,60 @@ def _vector_average(v0, navg):
     assert v0.ndim == 1, 'in _vector_average, v0 should be a vector'
     if navg == 1:
         return v0
-        
+                
     n = np.size(v0, 0) / navg
     v = np.zeros(n)
+    if valid is None:
+        valid = np.ones_like(v)
+    
     for i in np.arange(n):
         n0 = i * navg
-        v[i] = v0[n0:n0 + navg - 1].mean()
+        vslice = v0[n0:n0 + navg-1]
+        validslice = valid[n0:n0 + navg-1]
+        if missing is None:
+            idx = (validslice != 0)
+            if idx.sum() == 0:
+                v[i] = -9999.
+            else:
+                v[i] = vslice[idx].mean()
+        else:
+            idx = (vslice != missing) & (validslice != 0)
+            if idx.sum() == 0:
+                v[i] = None
+            else:
+                v[i] = vslice[idx].mean()
     return v
 
 
-def _array_average(a0, navg, weighted=False):
-    """ a = _array_average (a0, navg, weighted=False)
-        moyenne le tableau a0 le long des x tous les navg profils."""
+def _array_std(a0, navg, valid=None):
+    
+    a0 = a0.squeeze()
+    assert a0.ndim == 2, 'in _array_std, a0 should be a 2d array'
+    if navg == 1:
+        return np.zeros_like(a0)
+    n = np.size(a0, 0) / navg
+    a = np.zeros([n, np.size(a0, 1)])
+    if valid is None:
+        valid = np.ones(np.size(a,0))
+    for i in np.arange(n):
+        n0 = i * navg
+        aslice = a0[n0:n0 + navg - 1, :]
+        validslice = valid[n0:n0+navg-1]
+        idx = (validslice > 0)
+        if idx.sum()==0:
+            a[i,:] = -9999.
+        else:
+            a[i, :] = np.std(aslice[idx,:], axis=0)
+    return a
+    
+    
+def _array_average(a0, navg, weighted=False, valid=None, missing=None):
+    """
+    a = _array_average (a0, navg, weighted=False)
+    moyenne le tableau a0 le long des x tous les navg profils.
+    missing = valeur a ignorer (genre -9999), ou None  
+    precising a missing value might slow things down...      
+    """
 
     a0 = a0.squeeze()
 
@@ -215,17 +257,28 @@ def _array_average(a0, navg, weighted=False):
         w = np.zeros(navg)
         w[:navg / 2. + 1] = np.r_[1:navg / 2. + 1]
         w[navg / 2. + 1:] = np.r_[int(navg / 2.):0:-1]
+    else:
+        w = None
 
     # create averaged array a with number of averaged profiles n
     n = np.size(a0, 0) / navg
     a = np.zeros([n, np.size(a0, 1)])
+    if valid is None:
+        valid = np.ones(np.size(a0, 0)) 
     
     for i in np.arange(n):
         n0 = i * navg
-        if weighted:
-            a[i, :] = np.average(a0[n0:n0 + navg, :], axis=0, weights=w)
+        aslice = a0[n0:n0 + navg - 1,:]
+        validslice = valid[n0:n0 + navg-1]
+        if missing is None:
+            idx = (validslice != 0)
+            if idx.sum() == 0:
+                a[i,:] = -9999.
+            else:
+                a[i, :] = np.average(aslice[idx,:], axis=0, weights=w)
         else:
-            a[i, :] = np.mean(a0[n0:n0 + navg - 1, :],axis=0)
+            aslice = np.ma.masked_where(aslice==missing, aslice)
+            a[i, :] = np.ma.mean(aslice, axis=0, weights=w)
     return a
 
 
@@ -278,7 +331,7 @@ class _Cal:
         self.seconds = int(filename[-8:-6])
         self.date = datetime.datetime(self.year, self.month, self.day,
             self.hour, self.minutes, self.seconds)
-        
+                    
     def __repr__(self):
         return self.filename
         
@@ -307,9 +360,43 @@ class Cal1(_Cal):
         
     """
 
-    def _read_var(self, var, navg, idx=(0, -1)):
+    def __init__(self, filename, max_rms=None):
+        
+        _Cal.__init__(self, filename)
+        self.valid_rms_profiles = None
+        if max_rms is not None:
+            rms = self.parallel_rms_baseline(navg=1)
+            self.valid_rms_profiles = (rms < max_rms)
+                    
+
+    def _read_std(self, var, navg, idx=(0, -1)):
+        '''
+        Reads a variable in an hdf file, and computes the standard deviation
+        of the variable over navg profiles
+        '''
+
+        try:
+            var = self.hdf.select(var)
+        except:
+            print 'Cannot read ' + var + ' in ' + self.filename
+            return None
+            
+        this_var = var[:].squeeze()
+        if this_var.ndim == 1:
+            print 'sorry, ndim=1 not implemented in _read_std'
+            return None
+        data = this_var[...]
+        data = _array_std(data, navg, valid=self.valid_rms_profiles)
+        
+        var.endaccess()
+    
+        return data
+        
+
+    def _read_var(self, var, navg, idx=(0, -1), missing=None):
         """
         Read a variable in an hdf file, averaging the data if navg is > 1
+        considers only profiles with valid RMS if required at file opening
         """
         try:
             var = self.hdf.select(var)
@@ -326,24 +413,48 @@ class Cal1(_Cal):
                 data = this_var[idx[0]:idx[1]]
                 
             if navg > 1:
-                data = _vector_average(data, navg)
+                data = _vector_average(data, navg, missing=missing, valid=self.valid_rms_profiles)
         else:
             
             if idx[0] is 0 and idx[1] is -1:
                 data = this_var[...]
             else:
                 data = this_var[idx[0]:idx[1], :]
+            
             if navg > 1:
-                data = _array_average(data, navg)
+                data = _array_average(data, navg, missing=missing, valid=self.valid_rms_profiles)
 
         var.endaccess()
 
         return data
+        
+        
+    def valid_profiles(self, navg=30):
+        '''
+        returns the percentage of valid profiles used to average
+        over navg.
+        Invalid profiles depend on the required RMS for pre-averaging filtering
+        '''
+        if navg < 2:
+            return self.valid_rms_profiles
+        else:
+            n = np.size(self.valid_rms_profiles,0) / navg
+            nprof = np.zeros(n)
+            for i in np.arange(n):
+                validslice = self.valid_rms_profiles[i*navg:i*navg+navg-1]
+                nprof[i] = np.sum(validslice)
+            nprof = 100. * nprof / navg
+
+        return nprof
+        
 
     def utc_time(self, navg=30, idx=(0, -1)):
         var = self.hdf.select('Profile_UTC_Time')
         time = var[:].squeeze()
-        time = time[idx[0]:idx[1]]
+        if idx[0] > 0 and idx[1] > -1:
+            time = time[idx[0]:idx[1]]
+        # if self.valid_rms_profiles is not None:
+        #     time = time[self.valid_rms_profiles]
         if navg > 1:
             n = np.size(time, 0) / navg
             time2 = np.zeros(n)
@@ -426,6 +537,14 @@ class Cal1(_Cal):
             perp = perp[prof, :]
         return perp
 
+
+    def atb_std(self, navg=30, prof=None, idx=(0, -1)):
+        atbstd = self._read_std('Total_Attenuated_Backscatter_532', navg, idx=idx)
+        if prof:
+            atbstd = atb[prof, :]
+        return atbstd
+                
+
     def atb(self, navg=30, prof=None, idx=(0, -1)):
         """
         Reads the Attenuated Total Backscatter 532nm from CALIOP file
@@ -443,7 +562,7 @@ class Cal1(_Cal):
         JP Vernier utilise un seuil a 150 photons pour decider si un profil est bon ou pas
         units = counts
         '''
-        rms = self._read_var('Parallel_RMS_Baseline_532', navg, idx=idx)
+        rms = self._read_var('Parallel_RMS_Baseline_532', navg, idx=idx, missing=-9999.)
         if prof:
             rms = rms[prof,:]
         return rms
