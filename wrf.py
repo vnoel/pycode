@@ -44,8 +44,15 @@ class wrf(object):
         self.nc = None        
     
     def coords(self, it=0):
+        if it >= self.nc.variables['XLONG'].shape[0]:
+            print '*ERROR* : Requested timestamp not in WRF file'
+            print 'Requested timestamp index : ', it
+            print 'Number of time indexes in WRF file', self.nc.variables['XLONG'].shape[0]
+            return None, None
         lon = self.nc.variables['XLONG'][it,...]
         lat = self.nc.variables['XLAT'][it,...]
+        lon = np.squeeze(lon)
+        lat = np.squeeze(lat)
         return lon, lat
         
     def ntime(self):
@@ -82,6 +89,7 @@ class wrf(object):
         if on_orbit:
             wrflon, wrflat = self.coords(it=it)
             p = _remap(p, wrflon, wrflat, on_orbit[0], on_orbit[1])
+        p = np.squeeze(p)
         return p
 
     def temperature(self, it=0, kelvins=False, on_orbit=None):
@@ -104,7 +112,21 @@ class wrf(object):
             wrflon, wrflat = self.coords(it=it)
             t = _remap(t, wrflon, wrflat, on_orbit[0], on_orbit[1])
             
+        t = np.squeeze(t)
         return t
+
+
+    def u(self, it=0):
+        u = self.nc.variables['U'][it,...]
+        u = np.squeeze(u)
+        return u
+        
+        
+    def v(self, it=0):
+        v = self.nc.variables['V'][it,...]
+        v = np.squeeze(v)
+        return v
+    
 
     def w(self, it=0, on_orbit=None):
         '''
