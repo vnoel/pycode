@@ -3,6 +3,8 @@
 """
 arraydict.py
 
+My own little functions to read and write numpy arrays.
+
 Created by Vincent Noel - LMD/CNRS on 2011-11-24.
 """
 
@@ -31,7 +33,7 @@ class ArrayDict(dict):
         if from_file:
             
             if ('?' in from_file) or ('*' in from_file):
-                # if from_file looks like a file pattern
+                # from_file looks like a file pattern
 
                 import glob
 
@@ -53,8 +55,17 @@ class ArrayDict(dict):
             else:
                 
                 npz = np.load(from_file)
+                fill_value = None
+                if 'fill_value' in npz:
+                    fill_value = npz['fill_value']
                 for f in npz.files:
+                    if f is 'fill_value':
+                        continue
                     self[f] = npz[f]
+                    if fill_value is not None:
+                        idx = (self[f] == fill_value)
+                        if idx.sum() > 0:
+                            self[f] = np.ma.masked_where(self[f]==fill_value, self[f])
                 npz.close()
 
         if kwargs:
@@ -79,6 +90,7 @@ class ArrayDict(dict):
             else:
                 self[arrname] = arraydict[arrname]
                 
+
     def list(self):
         '''
         display the list of arrays contained in self and their shape
@@ -87,13 +99,29 @@ class ArrayDict(dict):
         for arrname in self.keys():
             print arrname, ':', self[arrname].shape
             
-    def save(self, filename, verbose=True):
+
+    def save(self, filename, verbose=True, fill_value=-99999.):
         '''
         save the arrays in a numpy file
         '''
         if verbose:
             print 'Saving', filename
-        np.savez(filename, **self)
+
+        # special-case masked arrays
+        masked = False
+        for key in self:
+            if np.ma.is_masked(self[key]):
+                masked = True
+        if masked:
+            print 'Saving masked arrays with fill_value=%f' % (fill_value)
+            copy = arraydict(**self)
+            for key in copy:
+                if np.ma.is_masked(copy[key]):
+                    copy[key] = np.ma.filled(self[key], fill_value=-99999.)
+            np.savez_compressed(filename, fill_value=fill_value, **copy)
+        else:
+            np.savez_compressed(filename, **self)
+
 
     def dump(self, filename):
         '''
