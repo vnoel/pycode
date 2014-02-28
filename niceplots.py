@@ -77,7 +77,7 @@ def savefig(figname, author='VNoel, LMD/CNRS', title=None):
         
 
 def legend(numpoints=2, **kwargs):
-    leg = plt.legend(prop=myfont['med'], fancybox=True, numpoints=numpoints, **kwargs)
+    leg = plt.legend(prop=myfont['med'], fancybox=True, labelspacing=0.2, numpoints=numpoints, **kwargs)
     plt.setp(leg.get_frame(), lw=0.5)
 
 
@@ -103,16 +103,24 @@ def beautify_colorbar(cb, title=None, ticks=None):
     if ticks is not None:
         cb.set_ticks(ticks)
 
+def colorbar():
+    cb = plt.colorbar()
+    beautify_colorbar(cb)
+
 
 def lon_formatter_func(x, pos):
-    if x >= 0:
+    if x == 0:
+        return (u'0°')
+    elif x > 0:
         return (u'%3.0f°E' % x)
     else:
         return (u'%3.0f°W' % -x)
 
 
 def lat_formatter_func(x, pos):
-    if x >= 0:
+    if x == 0:
+        return (u'0°')
+    elif x > 0:
         return (u'%3.0f°N' % x)
     else:
         return (u'%3.0f°S' % -x)
@@ -185,7 +193,7 @@ def infobox(text, alpha=0.7, location='top left'):
     ax.text(x, y, text, transform=ax.transAxes, va='top', ha=ha, bbox=props, fontproperties=myfont['med'])
 
 
-def bar(x, h, color='#002299', show_stats=False, normed=False):
+def bar(x, h, color='#002299', show_stats=False, normed=False, fix_lim=True, log=False):
     """
     plots a nice histogram.
     x, h:  the histogram bins and histogram heights, as returned by np.histogram.
@@ -199,9 +207,10 @@ def bar(x, h, color='#002299', show_stats=False, normed=False):
     if normed:
         h =  1. * h / np.sum(h)
     
-    plt.bar(x[:-1]+delta, h, width=w, color=color, ec='none')
-    plt.xlim(np.min(x), np.max(x))
-    plt.ylim(0, np.max(h) * 1.1)
+    plt.bar(x[:-1]+delta, h, width=w, color=color, ec='none', log=log)
+    if fix_lim:
+        plt.xlim(np.min(x), np.max(x))
+        plt.ylim(0, np.max(h) * 1.1)
     ax = plt.gca()
     ax.yaxis.grid(True, color='white')
     
@@ -212,12 +221,12 @@ def bar(x, h, color='#002299', show_stats=False, normed=False):
         ax.text(0.05, 0.95, '$\mu = %5.2f $' % avg, transform=ax.transAxes, va='top', bbox=props)
 
 
-def hist(x, bins=20):
+def hist(x, bins=20, log=False):
     '''
     shortcut to create a distribution and plot it.
     '''
     h, xe = np.histogram(x, bins=bins)
-    bar(xe, h)
+    bar(xe, h, log=log)
 
 
 def ygrid(color='grey'):
@@ -253,6 +262,23 @@ def shade_dates_areas(ax, dates, areas, color='grey'):
     '''
     x = mdates.date2num(dates)
     shade_x_areas(ax, x, areas, color=color)
+    
+def xaxis_day(ax):
+
+    ax.xaxis.axis_date()
+    
+    ax.xaxis.set_minor_locator(mdates.HourLocator(12))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter('%H'))
+    ax.xaxis.set_major_locator(mdates.DayLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b-%d'))
+    
+    maxlabels=[tick.label1 for tick in ax.xaxis.get_major_ticks()]
+    plt.setp(maxlabels, rotation=30, fontsize=10, ha='right', weight='bold')
+
+    minlabels=[tick.label1 for tick in ax.xaxis.get_minor_ticks()]
+    plt.setp(minlabels, rotation=30, fontsize=10, ha='right')
+    
+    ax.xaxis.grid(True, 'major')
     
     
 def xaxis_year_month(ax):
