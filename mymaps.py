@@ -8,6 +8,11 @@ VNoel 2012
 
 from mpl_toolkits.basemap import Basemap
 
+def southpole(boundinglat=60):
+
+    bm = Basemap(projection='spstere', boundinglat=boundinglat, lon_0=180, resolution='i')
+    return bm
+
 def northpole(boundinglat=60):
 
     bm = Basemap(projection='npstere', boundinglat=boundinglat, lon_0=0, resolution='i')
