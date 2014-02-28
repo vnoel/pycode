@@ -14,12 +14,9 @@ from pyhdf.SD import SD, SDC
 from scipy.integrate import trapz
 import numpy as np
 import numpy.ma as ma
-import glob
 import datetime
 import os
-import socket
 import warnings
-
 
 # these should be in the same directory as the module
 datapath = os.path.dirname(__file__) + '/staticdata/'
@@ -33,145 +30,8 @@ atb_max = {'ZN': 1e-4, 'ZD': 1}
 # maximum integrated atb for calibrationi in the 26-28 km range
 iatb_bounds = {'ZN': [1e-5, 8e-5], 'ZD': [-8e-3, 8e-3]}
 
-# server-dependent paths
-# these need to point to the path of CALIOP level 1 and level 2 data
-# they might be better in a config file...
-hostname = socket.gethostname()
-if hostname == 'access.icare.univ-lille1.fr':
-    l1dir = ('/DATA/LIENS/CALIOP/CAL_LID_L1.v3.01', None)
-    l2dir = ('/DATA/LIENS/CALIOP/05kmCLay.v3.02',
-        '/DATA/LIENS/CALIOP/05kmCLay.v3.01')
-    l2adir = ('/DATA/LIENS/CALIOP/05kmALay.v3.01',)
-else:
-    l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.02/', 
-            '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.01/')
-    l15dir = ('/bdd/CFMIP/CAL_LID_L1.5',)
-    # for level 2, look first in our own data, then on climserv data
-    l2dir = ('/bdd/CFMIP/Lidar_L2',
-        '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.02',
-        '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01',
-        '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
 
-
-def l1_files(y, m, d, mask='*'):
-    """
-    returns the list of available CALIOP L1 files matching a date and mask
-    """
-    goodpath = '/'
-    for l1d in l1dir:
-        calpath = l1d + '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-        if os.path.isdir(calpath):
-            goodpath = calpath
-    files = glob.glob(goodpath + mask + '.hdf')
-    return files
-
-
-def l1_night_files(y, m, d):
-    """
-    returns the list of available CALIOP nighttime L1 files matching a date
-    """
-    files = l1_files(y, m, d, '*ZN*')
-    return files
-
-
-def l1_file_from_orbit(y, m, d, orbit):
-    """returns full path to a CALIOP L1 orbit file"""
-    files = l1_files(y, m, d, '*' + orbit + '*')
-    if not files:
-        return None
-    return files[0]
-
-    
-def l1_file_from_l2_file(y, m, d, l2file):
-    orbit = l2file[-15:-4]
-    l1file = l1_file_from_orbit(y, m, d, orbit)
-    return l1file
-
-
-def l15_files(y, m, d, mask):
-    calpath = l15dir[0] + '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-    files = glob.glob(calpath + mask + '.nc')
-    return files
-
-
-def l15_night_files(y, m, d):
-    files = l15_files(y, m, d, '*ZN*')
-    return files
-
-
-def l15_file_from_orbit(y, m, d, orbit):
-    files = l15_files(y, m, d, '*' + orbit + '*')
-    if not files:
-        return None
-    return files[0]
-
-
-def l2_files(y, m, d, mask):
-    datepath = '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-    for l2d in l2dir:
-        calpath = l2d + datepath
-        if os.path.isdir(calpath):
-            files = glob.glob(calpath + mask + '.hdf')
-            return files
-    return None
-
-def l2_cfiles(y, m, d, mask):
-    return l2_files(y, m, d, mask)
-
-def l2_night_files (y, m, d):
-    files = l2_files(y, m, d, '*ZN*')
-    return files
-
-def l2_day_files(y, m, d):
-    files = l2_files(y, m, d, '*ZD*')
-    return files
-
-def l2_file_from_orbit(y, m, d, orbit):
-    files = l2_files(y, m, d, '*' + orbit + '*')
-    if not files:
-        return None
-    return files[0]
-
-def l2_afiles(y, m, d, mask):
-    datepath = '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-    calpath = l2adir[0] + datepath
-    files = glob.glob(calpath + mask + '.hdf')
-    if not files:
-        calpath = l2adir[1] + datepath
-        files = glob.glob(calpath + mask + '.hdf')
-    return files
-
-def l2bis_files(y, m, d, mask):
-    datepath = '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-    calpath = '/bdd/CFMIP/CAL_LID_L2bis' + datepath
-    files = glob.glob(calpath + mask + '.nc')
-    return files
-
-def l2bis_night_files (y, m, d):
-    return l2bis_files(y, m, d, '*ZN*')
-
-def l2bis_file_from_orbit(y, m, d, orbit):
-    files = l2bis_files(y, m, d, '*' + orbit + '*')
-    if not files:
-        return None
-    return files[0]
-
-def read_l2bis (calfile):
-    from scipy.io.matlab import mio
-    try:
-        x = mio.loadmat(calfile)
-    except:
-        print 'Cannot read file ' + calfile
-        return [None] * 5
-    t = x['T_lay']
-    lat = x['lat'][0, :]
-    lon = x['lon'][0, :]
-    zbase = x['zbase']
-    ztop = x['ztop']
-    return lon, lat, zbase, ztop, t
-
-
-# Fonctions maths utiles
+# Useful maths
 
 def _integrate_signal(data, alt):
     integrale = trapz(data[::-1], x=alt[::-1])
@@ -191,20 +51,20 @@ def _vector_average(v0, navg, missing=None, valid=None):
     n = np.size(v0, 0) / navg
     v = np.zeros(n)
     if valid is None:
-        valid = np.ones_like(v)
+        valid = np.ones_like(v0)
     
     for i in np.arange(n):
         n0 = i * navg
         vslice = v0[n0:n0 + navg-1]
         validslice = valid[n0:n0 + navg-1]
         if missing is None:
-            idx = (validslice != 0)
+            idx = (validslice != 0) & (vslice > -999.)
             if idx.sum() == 0:
                 v[i] = -9999.
             else:
                 v[i] = vslice[idx].mean()
         else:
-            idx = (vslice != missing) & (validslice != 0)
+            idx = (vslice != missing) & (validslice != 0) & (vslice > -999.)
             if idx.sum() == 0:
                 v[i] = None
             else:
@@ -220,8 +80,10 @@ def _array_std(a0, navg, valid=None):
         return np.zeros_like(a0)
     n = np.size(a0, 0) / navg
     a = np.zeros([n, np.size(a0, 1)])
+    
     if valid is None:
-        valid = np.ones(np.size(a,0))
+        valid = np.ones(np.size(a0,0))
+        
     for i in np.arange(n):
         n0 = i * navg
         aslice = a0[n0:n0 + navg - 1, :]
@@ -264,18 +126,32 @@ def _array_average(a0, navg, weighted=False, valid=None, missing=None):
     n = np.size(a0, 0) / navg
     a = np.zeros([n, np.size(a0, 1)])
     if valid is None:
+        # si on n'a pas d'info sur les profils valides, on suppose qu'ils le sont tous
         valid = np.ones(np.size(a0, 0)) 
     
     for i in np.arange(n):
         n0 = i * navg
         aslice = a0[n0:n0 + navg - 1,:]
         validslice = valid[n0:n0 + navg-1]
+        
         if missing is None:
-            idx = (validslice != 0)
+          
+            idx = (validslice != 0)   # & (np.all(aslice > -999., axis=1))
+            
             if idx.sum() == 0:
+                # no valid profiles in the slice according to valid profiles data
                 a[i,:] = -9999.
             else:
-                a[i, :] = np.average(aslice[idx,:], axis=0, weights=w)
+                aslice = aslice[idx,:]
+                # there might be invalid points somewhere in those profiles
+                # find number of valid points along the vertical
+                npts = np.sum(aslice > -999., axis=0)
+                # sum only the valid points along the vertical
+                aslice[aslice<-999.] = 0
+                asliceavg = np.sum(aslice, axis=0) /npts
+                # mark averaged points with no valid raw points as invalid
+                asliceavg[npts == 0] = -9999.
+                a[i, :] = asliceavg
         else:
             aslice = np.ma.masked_where(aslice==missing, aslice)
             a[i, :] = np.ma.mean(aslice, axis=0, weights=w)
@@ -443,7 +319,7 @@ class Cal1(_Cal):
             for i in np.arange(n):
                 validslice = self.valid_rms_profiles[i*navg:i*navg+navg-1]
                 nprof[i] = np.sum(validslice)
-            nprof = 100. * nprof / navg
+            nprof = 100. * nprof / (navg-1)
 
         return nprof
         
@@ -541,7 +417,7 @@ class Cal1(_Cal):
     def atb_std(self, navg=30, prof=None, idx=(0, -1)):
         atbstd = self._read_std('Total_Attenuated_Backscatter_532', navg, idx=idx)
         if prof:
-            atbstd = atb[prof, :]
+            atbstd = self.atb[prof, :]
         return atbstd
                 
 
@@ -616,8 +492,7 @@ class Cal1(_Cal):
         rh = self._read_var('Relative_Humidity', navg, idx=idx)
         return rh
         
-    def pressure_on_lidar_alt(self, navg=30, alt=lidar_alt,
-        metalt=met_alt, idx=(0, -1)):
+    def pressure_on_lidar_alt(self, navg=30, alt=lidar_alt, metalt=met_alt, idx=(0, -1)):
         """
         Reads the ancillary pressure field from CALIOP file, interpolated on
         CALIOP altitude levels.
@@ -628,8 +503,7 @@ class Cal1(_Cal):
 
         return p
 
-    def mol_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt,
-        metalt=met_alt, idx=(0, -1)):
+    def mol_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0, -1)):
         """
         Reads the ancillary molecular number density from CALIOP file,
         interpolated on
@@ -716,8 +590,7 @@ class Cal1(_Cal):
             
         return mol
     
-    def temperature_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt,
-        metalt=met_alt, idx=(0, -1)):
+    def temperature_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0, -1)):
         """
         Returns the ancillary temperature field in degC, interpolated on
         CALIOP altitude levels.
@@ -728,8 +601,7 @@ class Cal1(_Cal):
             t = t[prof, :]
         return t
 
-    def rh_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt,
-        metalt=met_alt, idx=(0, -1)):
+    def rh_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0, -1)):
         """
         Returns the ancillary relative humidity field from the CALIOP file,
         interpolated on CALIOP altitude levels.
@@ -741,8 +613,7 @@ class Cal1(_Cal):
             rh = rh[prof, :]
         return rh
 
-    def scattering_ratio(self, navg=30, prof=None, alt=lidar_alt,
-        metalt=met_alt, idx=(0, -1)):
+    def scattering_ratio(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0, -1)):
         """
         Returns the scattering ratio, i.e. the ratio between the attenuated
         total backscatter and the molecular
@@ -773,8 +644,7 @@ class Cal1(_Cal):
 
     # some display utility functions
     
-    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax,
-        datetime=False, ymin=0, ymax=25, cmap=None):
+    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax, datetime=False, ymin=0, ymax=25, cmap=None):
 
         import niceplots
         
@@ -1049,7 +919,7 @@ class Cal2(_Cal):
             return y + 2000, m, d
 
         utc = self.utc_time(idx=idx)
-        seconds_into_day = ((utc - np.floor(utc)) * 24. * 3600. )
+        seconds_into_day = ((utc - np.floor(utc)) * 24. * 3600.)
 
         # first let's check if the orbit spans more than a single date
         y0, m0, d0 = _decdate_to_ymd(utc[0])
@@ -1065,6 +935,20 @@ class Cal2(_Cal):
             datetimes = [datetime.datetime(int(yy), int(mm), int(dd), 0, 0, 0) + datetime.timedelta(seconds=int(ss)) for yy,mm,dd,ss in zip(y,m,d,seconds_into_day)]
 
         return np.array(datetimes)
+        
+        
+    def statistics_532(self):
+        
+        var = self._read_var('Attenuated_Backscatter_Statistics_532')
+        stats = dict()
+        stats['min'] = var[:,0::6]
+        stats['max'] = var[:,1::6]
+        stats['mean'] = var[:,2::6]
+        stats['std'] = var[:,3::6]
+        stats['centroid'] = var[:,4::6]
+        stats['skewness'] = var[:,5::6]
+        
+        return stats
         
 
     def off_nadir_angle(self, idx=(0, -1)):
@@ -1120,6 +1004,16 @@ class Cal2(_Cal):
         top = self._read_var('Layer_Top_Altitude', idx=idx)
         base = self._read_var('Layer_Base_Altitude', idx=idx)
         return nl, base, top
+        
+    def layers_pressure(self, idx=(0, -1)):
+        """
+        returns layer pressure by profile
+        units : hPa
+        """
+        
+        ptop = self._read_var('Layer_Top_Pressure', idx=idx)
+        pbase = self._read_var('Layer_Base_Pressure', idx=idx)
+        return pbase, ptop
 
     def layers_number(self, idx=(0, -1)):
         """
