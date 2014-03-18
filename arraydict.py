@@ -110,13 +110,13 @@ class ArrayDict(dict):
         # special-case masked arrays
         masked = False
         for key in self:
-            if np.ma.is_masked(self[key]):
+            if np.ma.isMaskedArray(self[key]):
                 masked = True
         if masked:
             print 'Saving masked arrays with fill_value=%f' % (fill_value)
             copy = arraydict(**self)
             for key in copy:
-                if np.ma.is_masked(copy[key]):
+                if np.ma.isMaskedArray(copy[key]):
                     copy[key] = np.ma.filled(self[key], fill_value=-99999.)
             np.savez_compressed(filename, fill_value=fill_value, **copy)
         else:
