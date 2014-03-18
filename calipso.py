@@ -192,7 +192,9 @@ class _Cal:
     """
 
     def __init__(self, filename):
+
         warnings.simplefilter('ignore', DeprecationWarning)
+
         self.hdf = SD(filename, SDC.READ)
         self.filename = filename
         self.orbit = filename[-15:-4]
@@ -303,11 +305,11 @@ class Cal1(_Cal):
 
 
     def valid_profiles(self, navg=30):
-        '''
+        """
         returns the percentage of valid profiles used to average
         over navg.
         Invalid profiles depend on the required RMS for pre-averaging filtering
-        '''
+        """
         if navg < 2:
             return self.valid_rms_profiles
         else:
@@ -429,12 +431,12 @@ class Cal1(_Cal):
         return atb
 
     def parallel_rms_baseline(self, navg=30, prof=None, idx=(0, -1)):
-        '''
+        """
         Reads the Parallel RMS Baseline at 532nm from CALIOP file
         shape [nprof]
         JP Vernier utilise un seuil a 150 photons pour decider si un profil est bon ou pas
         units = counts
-        '''
+        """
         rms = self._read_var('Parallel_RMS_Baseline_532', navg, idx=idx, missing=-9999.)
         if prof:
             rms = rms[prof, :]
@@ -827,6 +829,10 @@ class Cal2(_Cal):
     """
 
     def _read_var(self, var, idx=(0, -1)):
+        """
+        internal helping func to read a variable (1D or 2D) in HDF file
+        """
+
         hdfvar = self.hdf.select(var)
         if idx[0] is 0 and idx[1] is -1:
             data = hdfvar[:]
@@ -867,23 +873,23 @@ class Cal2(_Cal):
         return lon, lat
 
     def time(self, idx=(0, -1)):
-        '''
+        """
         returns profile time (TAI)
         shape [nprof]
-        '''
+        """
         return self._read_var('Profile_Time', idx=idx)[:]
 
     def utc_time(self, idx=(0, -1)):
-        '''
+        """
         Returns utc time value (decimal time)
-        '''
+        """
         time = self._read_var('Profile_UTC_Time', idx=idx)[:, 1]
         return time
 
     def datetime(self, idx=(0, -1)):
-        '''
+        """
         Returns an array of datetime objects based on utc_time values
-        '''
+        """
         utc = self.utc_time(idx=idx)
         datetimes = []
         for u in utc:
@@ -901,11 +907,11 @@ class Cal2(_Cal):
 
 
     def datetime2(self, idx=(0, -1)):
-        '''
+        """
         Returns an array of datetime objects based on utc_time values
         this version is 5 times faster than the datetime function above. 
         Is it worth it ? not sure.
-        '''
+        """
 
         def _decdate_to_ymd(decdate):
 
