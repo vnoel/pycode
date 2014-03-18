@@ -3,7 +3,7 @@
 """
 arraydict.py
 
-My own little functions to read and write numpy arrays.
+My own little module to read and write numpy arrays.
 
 Created by Vincent Noel - LMD/CNRS on 2011-11-24.
 """
