@@ -192,7 +192,6 @@ class _Cal:
     """
 
     def __init__(self, filename):
-
         warnings.simplefilter('ignore', DeprecationWarning)
 
         self.hdf = SD(filename, SDC.READ)
@@ -243,7 +242,6 @@ class Cal1(_Cal):
             rms = self.parallel_rms_baseline(navg=1)
             self.valid_rms_profiles = (rms < max_rms)
 
-
     def _read_std(self, var, navg, idx=(0, -1)):
         """
         Reads a variable in an hdf file, and computes the standard deviation
@@ -266,7 +264,6 @@ class Cal1(_Cal):
         var.endaccess()
 
         return data
-
 
     def _read_var(self, var, navg, idx=(0, -1), missing=None):
         """
@@ -303,7 +300,6 @@ class Cal1(_Cal):
 
         return data
 
-
     def valid_profiles(self, navg=30):
         """
         returns the percentage of valid profiles used to average
@@ -321,7 +317,6 @@ class Cal1(_Cal):
             nprof = 100. * nprof / (navg - 1)
 
         return nprof
-
 
     def utc_time(self, navg=30, idx=(0, -1)):
         var = self.hdf.select('Profile_UTC_Time')
@@ -412,13 +407,11 @@ class Cal1(_Cal):
             perp = perp[prof, :]
         return perp
 
-
     def atb_std(self, navg=30, prof=None, idx=(0, -1)):
         atbstd = self._read_std('Total_Attenuated_Backscatter_532', navg, idx=idx)
         if prof:
             atbstd = self.atb[prof, :]
         return atbstd
-
 
     def atb(self, navg=30, prof=None, idx=(0, -1)):
         """
@@ -942,7 +935,6 @@ class Cal2(_Cal):
 
         return np.array(datetimes)
 
-
     def statistics_532(self):
 
         var = self._read_var('Attenuated_Backscatter_Statistics_532')
@@ -955,7 +947,6 @@ class Cal2(_Cal):
         stats['skewness'] = var[:, 5::6]
 
         return stats
-
 
     def off_nadir_angle(self, idx=(0, -1)):
         """
