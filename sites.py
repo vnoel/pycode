@@ -22,10 +22,7 @@ else:
     l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30/',
              '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.02/',
              '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.01/')
-    l15dir = ('/bdd/CFMIP/CAL_LID_L1.5',)
-    # for level 2, look first in our own data, then on climserv data
-    l2dir = ('/bdd/CFMIP/Lidar_L2',
-             '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.02',
+    l2dir = ('/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.02',
              '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.01',
              '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01',
              '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
