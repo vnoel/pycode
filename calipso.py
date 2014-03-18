@@ -18,6 +18,7 @@ import datetime
 import os
 import warnings
 
+
 # these should be in the same directory as the module
 datapath = os.path.dirname(__file__) + '/staticdata/'
 lidar_alt = np.loadtxt(datapath + 'lidaralt.asc')
@@ -47,16 +48,16 @@ def _vector_average(v0, navg, missing=None, valid=None):
     assert v0.ndim == 1, 'in _vector_average, v0 should be a vector'
     if navg == 1:
         return v0
-                
+
     n = np.size(v0, 0) / navg
     v = np.zeros(n)
     if valid is None:
         valid = np.ones_like(v0)
-    
+
     for i in np.arange(n):
         n0 = i * navg
-        vslice = v0[n0:n0 + navg-1]
-        validslice = valid[n0:n0 + navg-1]
+        vslice = v0[n0:n0 + navg - 1]
+        validslice = valid[n0:n0 + navg - 1]
         if missing is None:
             idx = (validslice != 0) & (vslice > -999.)
             if idx.sum() == 0:
@@ -73,29 +74,28 @@ def _vector_average(v0, navg, missing=None, valid=None):
 
 
 def _array_std(a0, navg, valid=None):
-    
     a0 = a0.squeeze()
     assert a0.ndim == 2, 'in _array_std, a0 should be a 2d array'
     if navg == 1:
         return np.zeros_like(a0)
     n = np.size(a0, 0) / navg
     a = np.zeros([n, np.size(a0, 1)])
-    
+
     if valid is None:
-        valid = np.ones(np.size(a0,0))
-        
+        valid = np.ones(np.size(a0, 0))
+
     for i in np.arange(n):
         n0 = i * navg
         aslice = a0[n0:n0 + navg - 1, :]
-        validslice = valid[n0:n0+navg-1]
+        validslice = valid[n0:n0 + navg - 1]
         idx = (validslice > 0)
-        if idx.sum()==0:
-            a[i,:] = -9999.
+        if idx.sum() == 0:
+            a[i, :] = -9999.
         else:
-            a[i, :] = np.std(aslice[idx,:], axis=0)
+            a[i, :] = np.std(aslice[idx, :], axis=0)
     return a
-    
-    
+
+
 def _array_average(a0, navg, weighted=False, valid=None, missing=None):
     """
     a = _array_average (a0, navg, weighted=False)
@@ -127,33 +127,33 @@ def _array_average(a0, navg, weighted=False, valid=None, missing=None):
     a = np.zeros([n, np.size(a0, 1)])
     if valid is None:
         # si on n'a pas d'info sur les profils valides, on suppose qu'ils le sont tous
-        valid = np.ones(np.size(a0, 0)) 
-    
+        valid = np.ones(np.size(a0, 0))
+
     for i in np.arange(n):
         n0 = i * navg
-        aslice = a0[n0:n0 + navg - 1,:]
-        validslice = valid[n0:n0 + navg-1]
-        
+        aslice = a0[n0:n0 + navg - 1, :]
+        validslice = valid[n0:n0 + navg - 1]
+
         if missing is None:
-          
-            idx = (validslice != 0)   # & (np.all(aslice > -999., axis=1))
-            
+
+            idx = (validslice != 0)  # & (np.all(aslice > -999., axis=1))
+
             if idx.sum() == 0:
                 # no valid profiles in the slice according to valid profiles data
-                a[i,:] = -9999.
+                a[i, :] = -9999.
             else:
-                aslice = aslice[idx,:]
+                aslice = aslice[idx, :]
                 # there might be invalid points somewhere in those profiles
                 # find number of valid points along the vertical
                 npts = np.sum(aslice > -999., axis=0)
                 # sum only the valid points along the vertical
-                aslice[aslice<-999.] = 0
-                asliceavg = np.sum(aslice, axis=0) /npts
+                aslice[aslice < -999.] = 0
+                asliceavg = np.sum(aslice, axis=0) / npts
                 # mark averaged points with no valid raw points as invalid
                 asliceavg[npts == 0] = -9999.
                 a[i, :] = asliceavg
         else:
-            aslice = np.ma.masked_where(aslice==missing, aslice)
+            aslice = np.ma.masked_where(missing == aslice, aslice)
             a[i, :] = np.ma.mean(aslice, axis=0, weights=w)
     return a
 
@@ -169,7 +169,6 @@ def _remap_y(z0, y0, y):
 
 
 def ncep_remap(var, lat, lon, latorb, lonorb):
-
     n = np.size(latorb, 0)
     var2 = np.zeros([n, np.size(var, 0)])
 
@@ -188,7 +187,6 @@ def ncep_remap(var, lat, lon, latorb, lonorb):
 
 
 class _Cal:
-    
     """
     Trying to open a non-existing CALIOP file gives an exception
     """
@@ -198,7 +196,7 @@ class _Cal:
         self.hdf = SD(filename, SDC.READ)
         self.filename = filename
         self.orbit = filename[-15:-4]
-        self.z = self.orbit[-2:]            # zn or zd
+        self.z = self.orbit[-2:]  # zn or zd
         self.year = int(filename[-25:-21])
         self.month = int(filename[-20:-18])
         self.day = int(filename[-17:-15])
@@ -206,18 +204,17 @@ class _Cal:
         self.minutes = int(filename[-11:-9])
         self.seconds = int(filename[-8:-6])
         self.date = datetime.datetime(self.year, self.month, self.day,
-            self.hour, self.minutes, self.seconds)
-                    
+                                      self.hour, self.minutes, self.seconds)
+
     def __repr__(self):
         return self.filename
-        
+
     def close(self):
         self.hdf.end()
         self.hdf = None
 
 
 class Cal1(_Cal):
-    
     """
     Class to process CALIOP Level 1 file.
     Most of the reading function accept an argument navg 
@@ -237,37 +234,37 @@ class Cal1(_Cal):
     """
 
     def __init__(self, filename, max_rms=None):
-        
+
         _Cal.__init__(self, filename)
         self.valid_rms_profiles = None
         if max_rms is not None:
             rms = self.parallel_rms_baseline(navg=1)
             self.valid_rms_profiles = (rms < max_rms)
-                    
+
 
     def _read_std(self, var, navg, idx=(0, -1)):
-        '''
+        """
         Reads a variable in an hdf file, and computes the standard deviation
         of the variable over navg profiles
-        '''
+        """
 
         try:
             var = self.hdf.select(var)
         except:
             print 'Cannot read ' + var + ' in ' + self.filename
             return None
-            
+
         this_var = var[:].squeeze()
         if this_var.ndim == 1:
             print 'sorry, ndim=1 not implemented in _read_std'
             return None
         data = this_var[...]
         data = _array_std(data, navg, valid=self.valid_rms_profiles)
-        
+
         var.endaccess()
-    
+
         return data
-        
+
 
     def _read_var(self, var, navg, idx=(0, -1), missing=None):
         """
@@ -277,34 +274,34 @@ class Cal1(_Cal):
         try:
             var = self.hdf.select(var)
         except:
-            print var+' not present in file '+self.filename+' (version too old, maybe ?)'
+            print var + ' not present in file ' + self.filename + ' (version too old, maybe ?)'
             return None
-            
+
         this_var = var[:].squeeze()
         if this_var.ndim == 1:
-            
+
             if idx[0] is 0 and idx[1] is -1:
                 data = this_var[:]
             else:
                 data = this_var[idx[0]:idx[1]]
-                
+
             if navg > 1:
                 data = _vector_average(data, navg, missing=missing, valid=self.valid_rms_profiles)
         else:
-            
+
             if idx[0] is 0 and idx[1] is -1:
                 data = this_var[...]
             else:
                 data = this_var[idx[0]:idx[1], :]
-            
+
             if navg > 1:
                 data = _array_average(data, navg, missing=missing, valid=self.valid_rms_profiles)
 
         var.endaccess()
 
         return data
-        
-        
+
+
     def valid_profiles(self, navg=30):
         '''
         returns the percentage of valid profiles used to average
@@ -314,15 +311,15 @@ class Cal1(_Cal):
         if navg < 2:
             return self.valid_rms_profiles
         else:
-            n = np.size(self.valid_rms_profiles,0) / navg
+            n = np.size(self.valid_rms_profiles, 0) / navg
             nprof = np.zeros(n)
             for i in np.arange(n):
-                validslice = self.valid_rms_profiles[i*navg:i*navg+navg-1]
+                validslice = self.valid_rms_profiles[i * navg:i * navg + navg - 1]
                 nprof[i] = np.sum(validslice)
-            nprof = 100. * nprof / (navg-1)
+            nprof = 100. * nprof / (navg - 1)
 
         return nprof
-        
+
 
     def utc_time(self, navg=30, idx=(0, -1)):
         var = self.hdf.select('Profile_UTC_Time')
@@ -354,7 +351,7 @@ class Cal1(_Cal):
             d = int(d)
             seconds_into_day = np.int((u - np.floor(u)) * 24. * 3600.)
             profile_datetime = datetime.datetime(y, m, d, 0, 0, 0) + \
-                datetime.timedelta(seconds=seconds_into_day)
+                               datetime.timedelta(seconds=seconds_into_day)
             datetimes.append(profile_datetime)
         return np.array(datetimes)
 
@@ -401,14 +398,14 @@ class Cal1(_Cal):
         if prof is not None:
             elev = elev[prof, :]
         return elev
-        
+
     def perp(self, navg=30, prof=None, idx=(0, -1)):
         """
         Reads the perpendicular signal from CALIOP file
         shape [nprof, nz]
         """
         perp = self._read_var('Perpendicular_Attenuated_Backscatter_532',
-            navg, idx=idx)
+                              navg, idx=idx)
         if prof:
             perp = perp[prof, :]
         return perp
@@ -419,7 +416,7 @@ class Cal1(_Cal):
         if prof:
             atbstd = self.atb[prof, :]
         return atbstd
-                
+
 
     def atb(self, navg=30, prof=None, idx=(0, -1)):
         """
@@ -430,7 +427,7 @@ class Cal1(_Cal):
         if prof:
             atb = atb[prof, :]
         return atb
-        
+
     def parallel_rms_baseline(self, navg=30, prof=None, idx=(0, -1)):
         '''
         Reads the Parallel RMS Baseline at 532nm from CALIOP file
@@ -440,13 +437,13 @@ class Cal1(_Cal):
         '''
         rms = self._read_var('Parallel_RMS_Baseline_532', navg, idx=idx, missing=-9999.)
         if prof:
-            rms = rms[prof,:]
+            rms = rms[prof, :]
         return rms
-        
+
     def ccu_532(self, navg=30, prof=None, idx=(0, -1)):
         au = self._read_var('Calibration_Constant_Uncertainty_532', navg, idx=idx)
         if prof:
-            au = au[prof,:]
+            au = au[prof, :]
         return au
 
     def atb1064(self, navg=30, prof=None, idx=(0, -1)):
@@ -491,7 +488,7 @@ class Cal1(_Cal):
         """
         rh = self._read_var('Relative_Humidity', navg, idx=idx)
         return rh
-        
+
     def pressure_on_lidar_alt(self, navg=30, alt=lidar_alt, metalt=met_alt, idx=(0, -1)):
         """
         Reads the ancillary pressure field from CALIOP file, interpolated on
@@ -516,8 +513,8 @@ class Cal1(_Cal):
         return mol
 
     def mol_calibration_coef(self, mol=None, atb=None, navg=30, prof=None,
-            alt=lidar_alt, metalt=met_alt, idx=(0, -1), navgh=50, zmin=30,
-            zmax=34):
+                             alt=lidar_alt, metalt=met_alt, idx=(0, -1), navgh=50, zmin=30,
+                             zmax=34):
         """
         Returns the molecular calibration coefficient, computed from
         atb 532 nm and molecular density profiles,
@@ -527,43 +524,42 @@ class Cal1(_Cal):
         """
         if mol is None and atb is None:
             mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt,
-                metalt=metalt, idx=idx)
+                                        metalt=metalt, idx=idx)
             atb = self.atb(navg=navg, prof=prof, idx=idx)
 
         # remove atb and molecular unfit for calibration purposes
         # this level of backscattering is most probably due to noise
         # in the lower stratosphere
         # (and if it's not noise we don't want it anyway)
-        
+
         atb[np.abs(atb) > atb_max[self.z]] = np.nan
         mol[mol < 0] = np.nan
-        
+
         atb = ma.masked_invalid(atb)
         mol = ma.masked_invalid(mol)
 
         idx = (alt >= zmin) & (alt <= zmax)
-        
+
         atb_calib_profile = ma.mean(atb[:, idx], axis=1)
         mol_calib_profile = ma.mean(mol[:, idx], axis=1)
-         
+
         # now do a moving average, weeding out bad profiles
         atbbounds = iatb_bounds[self.z]
 
         nprof = mol.shape[0]
         coef = np.zeros([nprof])
-        
+
         for i in np.arange(nprof):
-            
             idxh = np.r_[np.max([0, i - navgh]):np.min([nprof - 1, i + navgh])]
             atbslice = atb_calib_profile[idxh]
             molslice = mol_calib_profile[idxh]
             idx = (atbslice > atbbounds[0]) & (atbslice < atbbounds[1])
             coef[i] = ma.mean(atbslice[idx]) / ma.mean(molslice)
-            
+
         return coef
-        
+
     def mol_on_lidar_alt_calibrated(self, navg=30, prof=None, alt=lidar_alt,
-         navgh=50, metalt=met_alt, idx=(0, -1), zcal=(30, 34), atb=None):
+                                    navgh=50, metalt=met_alt, idx=(0, -1), zcal=(30, 34), atb=None):
         """
         Returns an estimate of the molecular backscatter at 532 nm, computed
         from the molecular number density calibrated on
@@ -575,21 +571,21 @@ class Cal1(_Cal):
         atb can be passed as an argument if it's been read and averaged already.
         """
         mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt,
-            metalt=metalt, idx=idx)
+                                    metalt=metalt, idx=idx)
         if atb is None:
             atb = self.atb(navg=navg, prof=prof, idx=idx)
-        
+
         coef = self.mol_calibration_coef(mol=mol, atb=atb, zmin=zcal[0],
-            zmax=zcal[1], navgh=navgh)
-            
+                                         zmax=zcal[1], navgh=navgh)
+
         # x * y is equivalent to x[:,i] * y[i]
         # mol is [i,:], so we need to rotate it twice
         mol = mol.T
         mol *= coef
         mol = mol.T
-            
+
         return mol
-    
+
     def temperature_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0, -1)):
         """
         Returns the ancillary temperature field in degC, interpolated on
@@ -620,7 +616,7 @@ class Cal1(_Cal):
         backscatter, both at 532 nm, both read from the CALIOP file.
         """
         mol_calib = self.mol_on_lidar_alt_calibrated(navg=navg,
-            prof=prof, alt=lidar_alt, metalt=met_alt, idx=idx)
+                                                     prof=prof, alt=lidar_alt, metalt=met_alt, idx=idx)
         atb = self.atb(navg=navg, prof=prof, idx=idx)
         r = atb / mol_calib
         return r
@@ -632,7 +628,7 @@ class Cal1(_Cal):
         """
         tropoz = self._read_var('Tropopause_Height', navg, idx=idx)
         return tropoz
-        
+
     def tropopause_temperature(self, navg=30, idx=(0, -1)):
         """
         Reads the ancillary tropopause temperature, in degC,
@@ -643,20 +639,20 @@ class Cal1(_Cal):
         return tropot
 
     # some display utility functions
-    
+
     def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax, datetime=False, ymin=0, ymax=25, cmap=None):
 
         import niceplots
-        
+
         import matplotlib.pyplot as plt
         from pylab import get_cmap
 
         print 'Showing ' + dataname
         print 'Lat range : ', latrange
-        
+
         if cmap is None:
             cmap = get_cmap('gist_stern_r')
-        
+
         plt.ioff()
         fig = plt.figure(figsize=(20, 6))
         ax = plt.gca()
@@ -668,11 +664,11 @@ class Cal1(_Cal):
             fig.autofmt_xdate()
         else:
             plt.xlabel('Latitude')
-            
+
         plt.colorbar().set_label(dataname)
         plt.ylabel('Altitude [km]')
         plt.title(dataname + ' - CALIOP ' + str(self.date))
-            
+
     def peek_atb_time(self, navg=30, mintime=None, maxtime=None):
 
         from pylab import get_cmap
@@ -681,21 +677,22 @@ class Cal1(_Cal):
         atb = self.atb(navg=navg)
         time = self.datetimes(navg=navg)
         import matplotlib.dates as mdates
+
         numtime = mdates.date2num(time)
-        
+
         if mintime is None:
             mintime = np.min(numtime)
         else:
             mintime = mdates.date2num(mintime)
-        
+
         if maxtime is None:
             maxtime = np.max(numtime)
         else:
             maxtime = mdates.date2num(maxtime)
-        
+
         self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime],
-            'Coefficient de retrodiffusion [log10]', -3.5, -2, datetime=True,
-            cmap=get_cmap('gist_stern_r'))
+                   'Coefficient de retrodiffusion [log10]', -3.5, -2, datetime=True,
+                   cmap=get_cmap('gist_stern_r'))
 
     def peek_cr_time(self, navg=30, mintime=None, maxtime=None):
 
@@ -707,6 +704,7 @@ class Cal1(_Cal):
         cr = atb1064 / atb532
         time = self.datetimes(navg=navg)
         import matplotlib.dates as mdates
+
         numtime = mdates.date2num(time)
 
         if mintime is None:
@@ -719,14 +717,14 @@ class Cal1(_Cal):
             maxtime = mdates.date2num(maxtime)
 
         self._peek(numtime, lidar_alt, cr, [mintime, maxtime],
-            'Volumic Attenuated Color Ratio', 0, 1.4, datetime=True,
-            cmap=get_cmap('jet'))
-        
+                   'Volumic Attenuated Color Ratio', 0, 1.4, datetime=True,
+                   cmap=get_cmap('jet'))
+
     def peek_psc_time(self, navg=30, mintime=None, maxtime=None):
         atb = self.atb(navg=navg)
         time = self.datetimes(navg=navg)
         import matplotlib.dates as mdates
-        
+
         print np.min(time), np.max(time)
         print mintime, maxtime
 
@@ -738,7 +736,7 @@ class Cal1(_Cal):
             mintime = mdates.date2num(mintime)
             if mintime < np.min(numtime):
                 print 'Error : mintime < min(time)'
-            
+
         if maxtime is None:
             maxtime = np.max(numtime)
             if maxtime > np.max(numtime):
@@ -754,9 +752,10 @@ class Cal1(_Cal):
         atb[atb < 0] = 1e-6
 
         self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime],
-        'Coefficient de retrodiffusion (log10)', -3.5, -2.25, datetime=True,
-        ymin=5, ymax=28)
+                   'Coefficient de retrodiffusion (log10)', -3.5, -2.25, datetime=True,
+                   ymin=5, ymax=28)
         import matplotlib.pyplot as plt
+
         plt.plot(numtime, tropo + 1, color='green')
 
     def peek_atb(self, latrange=(-84, 84), navg=120):
@@ -772,7 +771,7 @@ class Cal1(_Cal):
         atb = atb[idx, :]
         print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
         self._peek(lat, lidar_alt, np.log10(atb), latrange,
-            'Attenuated Total Backscatter', -4, -2)
+                   'Attenuated Total Backscatter', -4, -2)
 
     def peek_depol(self, latrange=(-84, 84), navg=120):
         """
@@ -791,7 +790,7 @@ class Cal1(_Cal):
         print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
 
         self._peek(lat, lidar_alt, depol, latrange,
-            'Volumic Depolarization Ratio', 0, 0.8)
+                   'Volumic Depolarization Ratio', 0, 0.8)
 
     def peek_colorratio(self, latrange=(-84, 84), navg=120):
         """
@@ -808,11 +807,10 @@ class Cal1(_Cal):
         print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
 
         self._peek(lat, lidar_alt, cr, latrange,
-            'Volumic Color Ratio', 0.2, 1.)  # , cmap=get_cmap('jet'))
+                   'Volumic Color Ratio', 0.2, 1.)  # , cmap=get_cmap('jet'))
 
 
 class Cal2(_Cal):
-
     """
     Class to process CALIOP Level 2 files.
     No averaging is possible here given the nature of some variables.
@@ -845,11 +843,11 @@ class Cal2(_Cal):
         Returns latitude for profiles.
         shape [nprof]
         """
-        
+
         # the [:,1] is because level 2 vectors contain 3 values, that describe
         # the parameter for the first profile of the averaged section, the last profile,
         # and an average. The middle value is the average, that's what we use.
-        
+
         return self._read_var('Latitude', idx=idx)[:, 1]
 
     def lon(self, idx=(0, -1)):
@@ -879,7 +877,7 @@ class Cal2(_Cal):
         '''
         Returns utc time value (decimal time)
         '''
-        time = self._read_var('Profile_UTC_Time', idx=idx)[:,1]
+        time = self._read_var('Profile_UTC_Time', idx=idx)[:, 1]
         return time
 
     def datetime(self, idx=(0, -1)):
@@ -897,7 +895,7 @@ class Cal2(_Cal):
             d = int(d)
             seconds_into_day = np.int((u - np.floor(u)) * 24. * 3600.)
             profile_datetime = datetime.datetime(y, m, d, 0, 0, 0) + \
-                datetime.timedelta(seconds=seconds_into_day)
+                               datetime.timedelta(seconds=seconds_into_day)
             datetimes.append(profile_datetime)
         return np.array(datetimes)
 
@@ -908,14 +906,14 @@ class Cal2(_Cal):
         this version is 5 times faster than the datetime function above. 
         Is it worth it ? not sure.
         '''
-        
+
         def _decdate_to_ymd(decdate):
 
             y = np.floor(decdate / 10000.)
             remainder = decdate - y * 10000
             m = np.floor(remainder / 100.)
             d = np.floor(remainder - m * 100)
-        
+
             return y + 2000, m, d
 
         utc = self.utc_time(idx=idx)
@@ -924,32 +922,34 @@ class Cal2(_Cal):
         # first let's check if the orbit spans more than a single date
         y0, m0, d0 = _decdate_to_ymd(utc[0])
         y1, m1, d1 = _decdate_to_ymd(utc[-1])
-        if d0==d1:
+        if d0 == d1:
             # orbit spans a single date
             # thus we can be a little faster
-            datetimes = np.array(datetime.datetime(int(y0), int(m0), int(d0), 0, 0, 0)) + np.array([datetime.timedelta(seconds=int(ss)) for ss in seconds_into_day])
+            datetimes = np.array(datetime.datetime(int(y0), int(m0), int(d0), 0, 0, 0)) + np.array(
+                [datetime.timedelta(seconds=int(ss)) for ss in seconds_into_day])
         else:
             # orbits spans more than a day, we have to compute everything
             print 'multi date', y0, m0, d0, y1, m1, d1
             y, m, d = _decdate_to_ymd(utc)
-            datetimes = [datetime.datetime(int(yy), int(mm), int(dd), 0, 0, 0) + datetime.timedelta(seconds=int(ss)) for yy,mm,dd,ss in zip(y,m,d,seconds_into_day)]
+            datetimes = [datetime.datetime(int(yy), int(mm), int(dd), 0, 0, 0) + datetime.timedelta(seconds=int(ss)) for
+                         yy, mm, dd, ss in zip(y, m, d, seconds_into_day)]
 
         return np.array(datetimes)
-        
-        
+
+
     def statistics_532(self):
-        
+
         var = self._read_var('Attenuated_Backscatter_Statistics_532')
         stats = dict()
-        stats['min'] = var[:,0::6]
-        stats['max'] = var[:,1::6]
-        stats['mean'] = var[:,2::6]
-        stats['std'] = var[:,3::6]
-        stats['centroid'] = var[:,4::6]
-        stats['skewness'] = var[:,5::6]
-        
+        stats['min'] = var[:, 0::6]
+        stats['max'] = var[:, 1::6]
+        stats['mean'] = var[:, 2::6]
+        stats['std'] = var[:, 3::6]
+        stats['centroid'] = var[:, 4::6]
+        stats['skewness'] = var[:, 5::6]
+
         return stats
-        
+
 
     def off_nadir_angle(self, idx=(0, -1)):
         """
@@ -987,7 +987,7 @@ class Cal2(_Cal):
         min, max, mean, stddev for lower boundary of the surface echo.
         en kilometres 
         """
-        
+
         return self._read_var('Lidar_Surface_Elevation', idx=idx)
 
     # Layer info
@@ -1004,13 +1004,13 @@ class Cal2(_Cal):
         top = self._read_var('Layer_Top_Altitude', idx=idx)
         base = self._read_var('Layer_Base_Altitude', idx=idx)
         return nl, base, top
-        
+
     def layers_pressure(self, idx=(0, -1)):
         """
         returns layer pressure by profile
         units : hPa
         """
-        
+
         ptop = self._read_var('Layer_Top_Pressure', idx=idx)
         pbase = self._read_var('Layer_Base_Pressure', idx=idx)
         return pbase, ptop
@@ -1169,7 +1169,6 @@ def randomdate():
 
 
 class TestCal1(unittest.TestCase):
-
     def setUp(self):
         # choisir un fichier CALIPSO au hasard...
         files = []
@@ -1223,6 +1222,7 @@ class TestCal1(unittest.TestCase):
             self.assertEqual(mol.shape[0], nprof)
             self.assertEqual(temperature.shape[0], nprof)
             self.assertEqual(rh.shape[0], nprof)
+
 
 if __name__ == '__main__':
     unittest.main()
