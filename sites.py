@@ -6,6 +6,7 @@ Utility functions to find CALIOP files on Climserv or ICARE servers
 Created by VNoel on 2014-02-27
 """
 
+import os
 import socket
 import glob
 
@@ -61,24 +62,6 @@ def l1_file_from_l2_file(y, m, d, l2file):
     orbit = l2file[-15:-4]
     l1file = l1_file_from_orbit(y, m, d, orbit)
     return l1file
-
-
-def l15_files(y, m, d, mask):
-    calpath = l15dir[0] + '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-    files = glob.glob(calpath + mask + '.nc')
-    return files
-
-
-def l15_night_files(y, m, d):
-    files = l15_files(y, m, d, '*ZN*')
-    return files
-
-
-def l15_file_from_orbit(y, m, d, orbit):
-    files = l15_files(y, m, d, '*' + orbit + '*')
-    if not files:
-        return None
-    return files[0]
 
 
 def l2_files(y, m, d, mask):
