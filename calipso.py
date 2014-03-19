@@ -24,11 +24,9 @@ datapath = os.path.dirname(__file__) + '/staticdata/'
 lidar_alt = np.loadtxt(datapath + 'lidaralt.asc')
 met_alt = np.loadtxt(datapath + 'metalt.asc')
 
-# the following ranges have been calibrated more carefully for nighttime than
-# daytime maximum atb to consider for calibration in the 26-28 km range
 atb_max = {'ZN': 1e-4, 'ZD': 1}
 
-# maximum integrated atb for calibrationi in the 26-28 km range
+# maximum integrated atb for calibration in the 26-28 km range
 iatb_bounds = {'ZN': [1e-5, 8e-5], 'ZD': [-8e-3, 8e-3]}
 
 
@@ -242,7 +240,7 @@ class Cal1(_Cal):
             rms = self.parallel_rms_baseline(navg=1)
             self.valid_rms_profiles = (rms < max_rms)
 
-    def _read_std(self, var, navg, idx=(0, -1)):
+    def _read_std(self, var, navg):
         """
         Reads a variable in an hdf file, and computes the standard deviation
         of the variable over navg profiles
@@ -408,7 +406,7 @@ class Cal1(_Cal):
         return perp
 
     def atb_std(self, navg=30, prof=None, idx=(0, -1)):
-        atbstd = self._read_std('Total_Attenuated_Backscatter_532', navg, idx=idx)
+        atbstd = self._read_std('Total_Attenuated_Backscatter_532', navg)
         if prof:
             atbstd = self.atb[prof, :]
         return atbstd
@@ -622,6 +620,8 @@ class Cal1(_Cal):
         shape [nprof]
         """
         tropoz = self._read_var('Tropopause_Height', navg, idx=idx)
+        if prof:
+            tropoz = tropoz[prof]
         return tropoz
 
     def tropopause_temperature(self, navg=30, idx=(0, -1)):
@@ -635,7 +635,7 @@ class Cal1(_Cal):
 
     # some display utility functions
 
-    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax, datetime=False, ymin=0, ymax=25, cmap=None):
+    def _peek(self, lat, alt, data, latrange, dataname, vmin, vmax, axis_datetime=False, ymin=0, ymax=25, cmap=None):
 
         import niceplots
 
@@ -654,7 +654,7 @@ class Cal1(_Cal):
         plt.pcolormesh(lat, alt, data.T, vmin=vmin, vmax=vmax, cmap=cmap)
         plt.xlim(latrange[0], latrange[1])
         plt.ylim(ymin, ymax)
-        if datetime:
+        if axis_datetime:
             niceplots.axis_set_date_format(ax, format='%H:%M')
             fig.autofmt_xdate()
         else:
@@ -686,7 +686,7 @@ class Cal1(_Cal):
             maxtime = mdates.date2num(maxtime)
 
         self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime],
-                   'Coefficient de retrodiffusion [log10]', -3.5, -2, datetime=True,
+                   'Coefficient de retrodiffusion [log10]', -3.5, -2, axis_datetime=True,
                    cmap=get_cmap('gist_stern_r'))
 
     def peek_cr_time(self, navg=30, mintime=None, maxtime=None):
@@ -712,7 +712,7 @@ class Cal1(_Cal):
             maxtime = mdates.date2num(maxtime)
 
         self._peek(numtime, lidar_alt, cr, [mintime, maxtime],
-                   'Volumic Attenuated Color Ratio', 0, 1.4, datetime=True,
+                   'Volumic Attenuated Color Ratio', 0, 1.4, axis_datetime=True,
                    cmap=get_cmap('jet'))
 
     def peek_psc_time(self, navg=30, mintime=None, maxtime=None):
@@ -747,7 +747,7 @@ class Cal1(_Cal):
         atb[atb < 0] = 1e-6
 
         self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime],
-                   'Coefficient de retrodiffusion (log10)', -3.5, -2.25, datetime=True,
+                   'Coefficient de retrodiffusion (log10)', -3.5, -2.25, axis_datetime=True,
                    ymin=5, ymax=28)
         import matplotlib.pyplot as plt
 
@@ -898,7 +898,6 @@ class Cal2(_Cal):
             datetimes.append(profile_datetime)
         return np.array(datetimes)
 
-
     def datetime2(self, idx=(0, -1)):
         """
         Returns an array of datetime objects based on utc_time values
@@ -908,12 +907,12 @@ class Cal2(_Cal):
 
         def _decdate_to_ymd(decdate):
 
-            y = np.floor(decdate / 10000.)
-            remainder = decdate - y * 10000
-            m = np.floor(remainder / 100.)
-            d = np.floor(remainder - m * 100)
+            year = np.floor(decdate / 10000.)
+            remainder = decdate - year * 10000
+            month = np.floor(remainder / 100.)
+            day = np.floor(remainder - month * 100)
 
-            return y + 2000, m, d
+            return year + 2000, month, day
 
         utc = self.utc_time(idx=idx)
         seconds_into_day = ((utc - np.floor(utc)) * 24. * 3600.)
@@ -1082,9 +1081,9 @@ class Cal2(_Cal):
         shape [nprof, nlaymax]
         """
 
-        # f = self.flag(hdf, idx=idx)
-        # cloudflag_qa = (f & 384) >> 7
-        # return cloudflag_qa
+        f = self.flag(idx=idx)
+        cloudflag_qa = (f & 384) >> 7
+        return cloudflag_qa
 
     def opacity_flag(self, idx=(0, -1)):
         """
@@ -1117,8 +1116,7 @@ class Cal2(_Cal):
         parallel backscatter at 532 nm
         shape [nprof, nlaymax]
         """
-        return self._read_var(
-            'Integrated_Volume_Depolarization_Ratio', idx=idx)
+        return self._read_var('Integrated_Volume_Depolarization_Ratio', idx=idx)
 
     def ipdp(self, idx=(0, -1)):
         """
@@ -1127,8 +1125,7 @@ class Cal2(_Cal):
         depolarization ratio corrected to remove its molecular component.
         shape [nprof, nlaymax]
         """
-        return self._read_var(
-            'Integrated_Particulate_Depolarization_Ratio', idx=idx)
+        return self._read_var('Integrated_Particulate_Depolarization_Ratio', idx=idx)
 
     def icr(self, idx=(0, -1)):
         """
@@ -1136,8 +1133,7 @@ class Cal2(_Cal):
         layer thickness.
         shape [nprof, nlaymax]
         """
-        return self._read_var(
-            'Integrated_Attenuated_Total_Color_Ratio', idx=idx)
+        return self._read_var('Integrated_Attenuated_Total_Color_Ratio', idx=idx)
 
     def ipcr(self, idx=(0, -1)):
         """
@@ -1168,6 +1164,7 @@ def randomdate():
 class TestCal1(unittest.TestCase):
     def setUp(self):
         # choisir un fichier CALIPSO au hasard...
+        from sites import l1_night_files
         files = []
         while len(files) == 0:
             files = l1_night_files(*randomdate())
