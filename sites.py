@@ -1,5 +1,5 @@
 """
-Utility functions to read CALIOP files on Climserv
+Utility functions to find CALIOP files on Climserv
 VNoel 2014-02-27
 """
 
@@ -11,6 +11,7 @@ import glob
 # server-dependent paths
 # these need to point to the path of CALIOP level 1 and level 2 data
 # they might be better in a config file...
+
 hostname = socket.gethostname()
 if hostname == 'access.icare.univ-lille1.fr':
     l1dir = ('/DATA/LIENS/CALIOP/CAL_LID_L1.v3.01', None)
