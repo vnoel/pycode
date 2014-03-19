@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
+
 """
 niceplots.py
 
@@ -17,10 +18,7 @@ import matplotlib.font_manager as fm
 import numpy as np
 import os
 
-if 'pistachio' in os.uname()[1]:
-    homedir = '/users/vnoel'
-else:
-    homedir = '/users/noel'
+homedir = os.path.expanduser('~')
 mundofont = homedir + '/.fonts/MundoSansStd.otf'
 mundofontbold = homedir + '/.fonts/MundoSansStd-Med.otf'
 myfont = {}
@@ -31,34 +29,35 @@ myfont['big'] = fm.FontProperties(fname=mundofontbold, size=18)
 elev_cmap = 'RdBu_r'
 
 
-def savefig(figname, author='VNoel, LMD/CNRS', title=None):
-    '''
+def savefig(figname, author='VNoel, LMD/CNRS'):
+    """
     Save figure
     if format is png or pdf (based on the extension), save
     the calling script full path as a tag + author
-    '''
+    """
 
-    import os, sys
+    import os
+    import sys
 
     # save script called for figure generation
     source = os.path.abspath(sys.argv[0])
 
     if figname.endswith('pdf'):
-    
+
         from matplotlib.backends.backend_pdf import PdfPages
-        
+
         pdf = PdfPages(figname)
         pdf.savefig()
         d = pdf.infodict()
-        
-        d['Subject'] = source        
+
+        d['Subject'] = source
         if author is not None:
             d['Author'] = author
-        
+
         pdf.close()
-        
+
     elif figname.endswith('png'):
-    
+
         from PIL import Image, PngImagePlugin
 
         plt.savefig(figname)
@@ -70,11 +69,11 @@ def savefig(figname, author='VNoel, LMD/CNRS', title=None):
             meta.add_text('Author', author)
 
         im.save(figname, 'PNG', pnginfo=meta)
-        
+
     else:
-    
+
         plt.savefig(figname)
-        
+
 
 def legend(numpoints=2, **kwargs):
     leg = plt.legend(prop=myfont['med'], fancybox=True, labelspacing=0.2, numpoints=numpoints, **kwargs)
@@ -84,6 +83,7 @@ def legend(numpoints=2, **kwargs):
 def segcmap(basecmap='jet', nlev=5):
     # use : pcolor(cmap=segcmap)
     import matplotlib.cm as cm
+
     palette = cm.get_cmap(basecmap, nlev)
     return palette
 
@@ -91,9 +91,10 @@ def segcmap(basecmap='jet', nlev=5):
 def segcmap_elev(basecmap='RdBu_r', nlev=5):
     # use : pcolor(cmap=segcmap)
     import matplotlib.cm as cm
+
     palette = cm.get_cmap(basecmap, nlev)
     return palette
-    
+
 
 def beautify_colorbar(cb, title=None, ticks=None):
     ylabels = [yt.get_text() for yt in cb.ax.get_yticklabels()]
@@ -103,32 +104,36 @@ def beautify_colorbar(cb, title=None, ticks=None):
     if ticks is not None:
         cb.set_ticks(ticks)
 
+
 def colorbar():
     cb = plt.colorbar()
     beautify_colorbar(cb)
 
 
-def lon_formatter_func(x, pos):
+def lon_formatter_func(x):
     if x == 0:
-        return (u'0°')
+        return u'0°'
     elif x > 0:
-        return (u'%3.0f°E' % x)
+        return u'%3.0f°E' % x
     else:
-        return (u'%3.0f°W' % -x)
+        return u'%3.0f°W' % -x
 
-
-def lat_formatter_func(x, pos):
-    if x == 0:
-        return (u'0°')
-    elif x > 0:
-        return (u'%3.0f°N' % x)
-    else:
-        return (u'%3.0f°S' % -x)
 
 lon_formatter = FuncFormatter(lon_formatter_func)
+
+
+def lat_formatter_func(x):
+    if x == 0:
+        return u'0°'
+    elif x > 0:
+        return u'%3.0f°N' % x
+    else:
+        return u'%3.0f°S' % -x
+
+
 lat_formatter = FuncFormatter(lat_formatter_func)
 
-    
+
 def cb_right(title=None):
     ax = plt.axes([0.92, 0.25, 0.02, 0.5])
     cb = plt.colorbar(cax=ax)
@@ -150,25 +155,22 @@ def beautify_axis(ax):
     plt.setp(ax.xaxis.label, fontproperties=myfont['med'])
     plt.setp(ax.yaxis.label, fontproperties=myfont['med'])
     beautify_title(ax)
-        
 
-def beautify_axis_font(fig=None, ax=None, cb=None, leg=None):
-    '''
+
+def beautify_axis_font(fig=None, ax=None, cb=None):
+    """
     sets various fonts to Mundo Sans
-    '''
+    """
 
     if fig is None:
         fig = plt.gcf()
     fig.canvas.draw()
     if ax:
         beautify_axis(ax)
-    # if leg:
-    #     beautify_legend(leg)
-    # doesn't work
     if cb:
         beautify_colorbar(cb)
 
-    
+
 def infobox(text, alpha=0.7, location='top left'):
     """
     plots a box containing text in a corner of the active figure.
@@ -189,7 +191,7 @@ def infobox(text, alpha=0.7, location='top left'):
         y = 0.95
     else:
         raise Exception, 'This location is not supported yet'
-        
+
     ax.text(x, y, text, transform=ax.transAxes, va='top', ha=ha, bbox=props, fontproperties=myfont['med'])
 
 
@@ -198,22 +200,22 @@ def bar(x, h, color='#002299', show_stats=False, normed=False, fix_lim=True, log
     plots a nice histogram.
     x, h:  the histogram bins and histogram heights, as returned by np.histogram.
     color: color of the histogram bars
-    show_stats: adds an infobox in a corner of the histogram displaying the average and standard deviation of the distribution
+    show_stats: adds an infobox in a corner of the histogram displaying the average and standard deviation of the dist.
     normed: if True, the distribution will be normed so its integration gives 1.
     """
-    w = (x[1]-x[0])*0.8
-    delta = (x[1]-x[0])*0.1
-    
+    w = (x[1] - x[0]) * 0.8
+    delta = (x[1] - x[0]) * 0.1
+
     if normed:
-        h =  1. * h / np.sum(h)
-    
-    plt.bar(x[:-1]+delta, h, width=w, color=color, ec='none', log=log)
+        h = 1. * h / np.sum(h)
+
+    plt.bar(x[:-1] + delta, h, width=w, color=color, ec='none', log=log)
     if fix_lim:
         plt.xlim(np.min(x), np.max(x))
         plt.ylim(0, np.max(h) * 1.1)
     ax = plt.gca()
     ax.yaxis.grid(True, color='white')
-    
+
     if show_stats:
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.7)
         normdist = h / h.sum()
@@ -222,107 +224,108 @@ def bar(x, h, color='#002299', show_stats=False, normed=False, fix_lim=True, log
 
 
 def hist(x, bins=20, log=False):
-    '''
+    """
     shortcut to create a distribution and plot it.
-    '''
+    """
     h, xe = np.histogram(x, bins=bins)
     bar(xe, h, log=log)
 
 
 def ygrid(color='grey'):
-    '''
+    """
     Activates the grid on the y-axis for the active axis.
-    '''
+    """
     plt.gca().yaxis.grid(True, color=color)
 
 
 def xgrid(color='grey'):
-    '''
+    """
     Activates the grid on the x-axis for active axis.
-    '''
+    """
     plt.gca().xaxis.grid(True, color=color)
-    
+
 
 def shade_x_areas(ax, x, areas, color='grey'):
-    '''
+    """
     shade areas delimited by horizontal points
-    '''
-    
+    """
+
     ymin, ymax = ax.get_ylim()
-    collection = collections.BrokenBarHCollection.span_where(x, ymin=ymin, ymax=ymax, where=areas, color=color, alpha=0.2)
+    collection = collections.BrokenBarHCollection.span_where(x, ymin=ymin, ymax=ymax, where=areas, color=color,
+                                                             alpha=0.2)
     ax.add_collection(collection)
-    
-    
+
+
 def shade_dates_areas(ax, dates, areas, color='grey'):
-    '''
+    """
     shade date areas on plot x axis
     dates = list of dates
     areas = boolean flag of dates to shade
     
-    '''
+    """
     x = mdates.date2num(dates)
     shade_x_areas(ax, x, areas, color=color)
-    
-def xaxis_day(ax):
 
+
+def xaxis_day(ax):
     ax.xaxis.axis_date()
-    
+
     ax.xaxis.set_minor_locator(mdates.HourLocator(12))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter('%H'))
     ax.xaxis.set_major_locator(mdates.DayLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b-%d'))
-    
-    maxlabels=[tick.label1 for tick in ax.xaxis.get_major_ticks()]
+
+    maxlabels = [tick.label1 for tick in ax.xaxis.get_major_ticks()]
     plt.setp(maxlabels, rotation=30, fontsize=10, ha='right', weight='bold')
 
-    minlabels=[tick.label1 for tick in ax.xaxis.get_minor_ticks()]
+    minlabels = [tick.label1 for tick in ax.xaxis.get_minor_ticks()]
     plt.setp(minlabels, rotation=30, fontsize=10, ha='right')
-    
+
     ax.xaxis.grid(True, 'major')
-    
-    
+
+
 def xaxis_year_month(ax):
-    
     ax.xaxis.axis_date()
-    
-    ax.xaxis.set_minor_locator(mdates.MonthLocator(range(2,13)))
+
+    ax.xaxis.set_minor_locator(mdates.MonthLocator(range(2, 13)))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter('%b'))
     ax.xaxis.set_major_locator(mdates.YearLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-    
-    maxlabels=[tick.label1 for tick in ax.xaxis.get_major_ticks()]
+
+    maxlabels = [tick.label1 for tick in ax.xaxis.get_major_ticks()]
     plt.setp(maxlabels, rotation=30, fontsize=10, ha='right', weight='bold')
 
-    minlabels=[tick.label1 for tick in ax.xaxis.get_minor_ticks()]
+    minlabels = [tick.label1 for tick in ax.xaxis.get_minor_ticks()]
     plt.setp(minlabels, rotation=30, fontsize=10, ha='right')
-    
+
     ax.xaxis.grid(True, 'minor')
 
-    
-def yaxis_season_dates(ax, days=[1,8,16,24]):
-    '''
+
+def yaxis_season_dates(ax, days=None):
+    """
     Sets tick marks on the y-axis nicely chosen for display time series over a season.
-    '''
+    """
+    if not days: days = [1, 8, 16, 24]
     yax = ax.yaxis
     yax.axis_date()
     yax.set_major_locator(mdates.DayLocator(bymonthday=days))
     yax.set_major_formatter(mdates.DateFormatter('%m-%d'))
-    
-    
-def axis_season_dates(ax, days=[1,8,16,24]):
-    '''
+
+
+def axis_season_dates(ax, days=None):
+    """
     Sets tick marks on the x-axis nicely chosen for display time series over a season.
-    '''
+    """
+    if not days: days = [1, 8, 16, 24]
     xax = ax.xaxis
     xax.axis_date()
     xax.set_major_locator(mdates.DayLocator(bymonthday=days))
     xax.set_major_formatter(mdates.DateFormatter('%m-%d'))
     plt.gcf().autofmt_xdate()
-    
+
+
 def axis_set_date_format(ax, format='%m-%d'):
     # cf http://docs.python.org/library/datetime.html#strftime-strptime-behavior
     xax = ax.xaxis
     xax.axis_date()
     xax.set_major_formatter(mdates.DateFormatter(format))
-    
-    
