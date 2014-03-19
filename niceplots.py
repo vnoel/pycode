@@ -21,11 +21,11 @@ import os
 homedir = os.path.expanduser('~')
 mundofont = homedir + '/.fonts/MundoSansStd.otf'
 mundofontbold = homedir + '/.fonts/MundoSansStd-Med.otf'
-myfont = {}
-myfont['small'] = fm.FontProperties(fname=mundofont, size=12)
-myfont['med'] = fm.FontProperties(fname=mundofont, size=14)
-myfont['big'] = fm.FontProperties(fname=mundofontbold, size=18)
-
+myfont = {
+    'small': fm.FontProperties(fname=mundofont, size=12),
+    'med': fm.FontProperties(fname=mundofont, size=14),
+    'big': fm.FontProperties(fname=mundofontbold, size=18)
+}
 elev_cmap = 'RdBu_r'
 
 
