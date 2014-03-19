@@ -2,13 +2,8 @@
 #encoding:utf-8
 
 """
-<<<<<<< HEAD
-Utility functions to find CALIOP files on Climserv
-VNoel 2014-02-27
-=======
 Utility functions to find CALIOP files on Climserv or ICARE servers
 Created by VNoel on 2014-02-27
->>>>>>> e43f3f556c44485223370d3b72d3686e72d087cf
 """
 
 import os
@@ -16,13 +11,7 @@ import socket
 import glob
 
 
-<<<<<<< HEAD
-# server-dependent paths
-# these need to point to the path of CALIOP level 1 and level 2 data
-# they might be better in a config file...
-=======
 # server-dependent paths pointing to CALIOP level 1 and level 2 data
->>>>>>> e43f3f556c44485223370d3b72d3686e72d087cf
 
 hostname = socket.gethostname()
 if hostname == 'access.icare.univ-lille1.fr':
