@@ -9,7 +9,7 @@ V. Noel 2008-2014
 LMD/CNRS
 """
 
-# cannot use pytables since calipso files are hdf4.
+# need pyhdf for hdf4
 from pyhdf.SD import SD, SDC
 from scipy.integrate import trapz
 import numpy as np
@@ -38,7 +38,8 @@ def _integrate_signal(data, alt):
 
 def _vector_average(v0, navg, missing=None, valid=None):
     """ v = _vector_average (v0, navg)
-        moyenne le vector v0 tous les navg points."""
+        moyenne le vector v0 tous les navg points.
+    """
 
     v0 = v0.squeeze()
 
@@ -164,7 +165,7 @@ def _remap_y(z0, y0, y):
         z[i, :] = np.interp(y, np.flipud(y0), np.flipud(z0[i, :]))
     return z
 
-
+#  wtf is this ??
 def ncep_remap(var, lat, lon, latorb, lonorb):
     n = np.size(latorb, 0)
     var2 = np.zeros([n, np.size(var, 0)])
@@ -182,6 +183,7 @@ def ncep_remap(var, lat, lon, latorb, lonorb):
 # Generic calipso file class
 # Use Cal1 and Cal2 classes instead
 
+idx0 = (0, -1)
 
 class _Cal:
     """
@@ -239,65 +241,52 @@ class Cal1(_Cal):
             rms = self.parallel_rms_baseline(navg=1)
             self.valid_rms_profiles = (rms < max_rms)
 
+	def _read_sds(varname):
+	    
+        try:
+            hdfvar = self.hdf.select(varname)
+        except:
+            print 'Cannot read ' + varname
+            return None
+            
+        var = hdfvar[:].squeeze()
+        hdfvar.endaccess()
+        return var
+
     def _read_std(self, varname, navg):
         """
         Reads a variable in an hdf file, and computes the standard deviation
         of the variable over navg profiles
         """
-        
-		# todo : extract the common part with _read_var
 
-        try:
-            hdfvar = self.hdf.select(varname)
-        except:
-            print 'Cannot read ' + varname + ' in ' + self.filename
-            return None
-            
-        var = hdfvar[:].squeeze()
-
+		var = self._read_sds(varname)
         if var.ndim == 1:
             print 'sorry, ndim=1 not implemented in _read_std'
             return None
         data = var[...]
         data = _array_std(data, navg, valid=self.valid_rms_profiles)
         
-        hdfvar.endaccess()
-
         return data
 
-    def _read_var(self, varname, navg, idx=(0, -1), missing=None):
+    def _read_var(self, varname, navg, idx=None, missing=None):
         """
         Read a variable in an hdf file, averaging the data if navg is > 1
         considers only profiles with valid RMS if required at file opening
         """
         
-        try:
-            hdfvar = self.hdf.select(varname)
-        except:
-            print varname + ' not present in file ' + self.filename + ' (version too old, maybe ?)'
-            return None
-            
-        var = hdfvar[:].squeeze()
-        if var.ndim == 1:
-            
-            if idx[0] is 0 and idx[1] is -1:
-                data = var[:]
-            else:
-                data = var[idx[0]:idx[1]]
-                
-            if navg > 1:
-                data = _vector_average(data, navg, missing=missing, valid=self.valid_rms_profiles)
+        var = self._read_sds(varname)        
+        if idx is None:
+            data = var[...]
         else:
-
-            if idx[0] is 0 and idx[1] is -1:
-                data = var[...]
-            else:
-                data = var[idx[0]:idx[1], :]
-
-            if navg > 1:
-                data = _array_average(data, navg, missing=missing, valid=self.valid_rms_profiles)
-
-        hdfvar.endaccess()
+            i0, i1 = idx
+            if var.ndim == 1:
+                data = var[i0:i1]
+            elif var.ndim == 2:
+                data = var[i0:i1,:]
+        
+        if navg > 1:
+            avg_function = {1:_vector_average, 2:_array_average}[var.ndim]
+            data = avg_function(data, navg, missing=missing, valid=self.valid_rms_profiles)
 
         return data
 
