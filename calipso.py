@@ -5,7 +5,7 @@
 Read CALIPSO lidar data files
 level 1 and level 2.
 
-V. Noel 2008-2011
+V. Noel 2008-2014
 LMD/CNRS
 """
 
@@ -19,10 +19,9 @@ import os
 import warnings
 
 
-# these should be in the same directory as the module
-datapath = os.path.dirname(__file__) + '/staticdata/'
-lidar_alt = np.loadtxt(datapath + 'lidaralt.asc')
-met_alt = np.loadtxt(datapath + 'metalt.asc')
+static_path = os.path.dirname(__file__) + '/staticdata/'
+lidar_alt = np.loadtxt(static_path + 'lidaralt.asc')
+met_alt = np.loadtxt(static_path + 'metalt.asc')
 
 atb_max = {'ZN': 1e-4, 'ZD': 1}
 
@@ -405,7 +404,11 @@ class Cal1(_Cal):
             perp = perp[prof, :]
         return perp
 
-    def atb_std(self, navg=30, prof=None, idx=(0, -1)):
+    def atb_std(self, navg=30, prof=None):
+        """
+        Standard deviation from the Attenuated Total Backscatter 532nm from CALIOP file
+        shape [nprof/navg, nz]
+        """
         atbstd = self._read_std('Total_Attenuated_Backscatter_532', navg)
         if prof:
             atbstd = self.atb[prof, :]
@@ -602,17 +605,17 @@ class Cal1(_Cal):
             rh = rh[prof, :]
         return rh
 
-    def scattering_ratio(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=(0, -1)):
+    def scattering_ratio(self, navg=30, prof=None, alt=None, metalt=None, idx=(0, -1)):
         """
         Returns the scattering ratio, i.e. the ratio between the attenuated
         total backscatter and the molecular
         backscatter, both at 532 nm, both read from the CALIOP file.
         """
         mol_calib = self.mol_on_lidar_alt_calibrated(navg=navg,
-                                                     prof=prof, alt=lidar_alt, metalt=met_alt, idx=idx)
+                                                     prof=prof, alt=alt, metalt=metalt, idx=idx)
         atb = self.atb(navg=navg, prof=prof, idx=idx)
-        r = atb / mol_calib
-        return r
+        sr = atb / mol_calib
+        return sr
 
     def tropopause_height(self, navg=30, prof=None, idx=(0, -1)):
         """
@@ -668,7 +671,6 @@ class Cal1(_Cal):
 
         from pylab import get_cmap
 
-        lon, lat = self.coords(navg=navg)
         atb = self.atb(navg=navg)
         time = self.datetimes(navg=navg)
         import matplotlib.dates as mdates
@@ -693,7 +695,6 @@ class Cal1(_Cal):
 
         from pylab import get_cmap
 
-        lon, lat = self.coords(navg=navg)
         atb532 = self.atb(navg=navg)
         atb1064 = self.atb1064(navg=navg)
         cr = atb1064 / atb532
@@ -742,8 +743,9 @@ class Cal1(_Cal):
         tropo = self.tropopause_height(navg=navg)
         tropo[tropo > 13] = 11
         for i, z in enumerate(tropo):
+            # I don't remember why this exists
             idx = (lidar_alt < (z + 3))
-            atb[i, idx] = atb[i, idx] * 0.5
+            atb[i, idx] *= 0.5
         atb[atb < 0] = 1e-6
 
         self._peek(numtime, lidar_alt, np.log10(atb), [mintime, maxtime],
@@ -922,7 +924,7 @@ class Cal2(_Cal):
         y1, m1, d1 = _decdate_to_ymd(utc[-1])
         if d0 == d1:
             # orbit spans a single date
-            # thus we can be a little faster
+            # we can be a little faster
             datetimes = np.array(datetime.datetime(int(y0), int(m0), int(d0), 0, 0, 0)) + np.array(
                 [datetime.timedelta(seconds=int(ss)) for ss in seconds_into_day])
         else:
@@ -1165,6 +1167,7 @@ class TestCal1(unittest.TestCase):
     def setUp(self):
         # choisir un fichier CALIPSO au hasard...
         from sites import l1_night_files
+
         files = []
         while len(files) == 0:
             files = l1_night_files(*randomdate())
