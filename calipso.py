@@ -239,56 +239,56 @@ class Cal1(_Cal):
             rms = self.parallel_rms_baseline(navg=1)
             self.valid_rms_profiles = (rms < max_rms)
 
-    def _read_std(self, var, navg):
+    def _read_std(self, varname, navg):
         """
         Reads a variable in an hdf file, and computes the standard deviation
         of the variable over navg profiles
         """
 
         try:
-            var = self.hdf.select(var)
+            var = self.hdf.select(varname)
         except:
-            print 'Cannot read ' + var + ' in ' + self.filename
+            print 'Cannot read ' + varname + ' in ' + self.filename
             return None
 
-        this_var = var[:].squeeze()
-        if this_var.ndim == 1:
+        var = var[:].squeeze()
+        if var.ndim == 1:
             print 'sorry, ndim=1 not implemented in _read_std'
             return None
-        data = this_var[...]
+        data = var[...]
         data = _array_std(data, navg, valid=self.valid_rms_profiles)
 
         var.endaccess()
 
         return data
 
-    def _read_var(self, var, navg, idx=(0, -1), missing=None):
+    def _read_var(self, varname, navg, idx=(0, -1), missing=None):
         """
         Read a variable in an hdf file, averaging the data if navg is > 1
         considers only profiles with valid RMS if required at file opening
         """
         try:
-            var = self.hdf.select(var)
+            var = self.hdf.select(varname)
         except:
-            print var + ' not present in file ' + self.filename + ' (version too old, maybe ?)'
+            print varname + ' not present in file ' + self.filename + ' (version too old, maybe ?)'
             return None
 
-        this_var = var[:].squeeze()
-        if this_var.ndim == 1:
+        var = var[:].squeeze()
+        if var.ndim == 1:
 
             if idx[0] is 0 and idx[1] is -1:
-                data = this_var[:]
+                data = var[:]
             else:
-                data = this_var[idx[0]:idx[1]]
+                data = var[idx[0]:idx[1]]
 
             if navg > 1:
                 data = _vector_average(data, navg, missing=missing, valid=self.valid_rms_profiles)
         else:
 
             if idx[0] is 0 and idx[1] is -1:
-                data = this_var[...]
+                data = var[...]
             else:
-                data = this_var[idx[0]:idx[1], :]
+                data = var[idx[0]:idx[1], :]
 
             if navg > 1:
                 data = _array_average(data, navg, missing=missing, valid=self.valid_rms_profiles)
