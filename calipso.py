@@ -31,11 +31,6 @@ iatb_bounds = {'ZN': [1e-5, 8e-5], 'ZD': [-8e-3, 8e-3]}
 
 # Useful maths
 
-def _integrate_signal(data, alt):
-    integrale = trapz(data[::-1], x=alt[::-1])
-    return integrale
-
-
 def _vector_average(v0, navg, missing=None, valid=None):
     """ v = _vector_average (v0, navg)
         moyenne le vector v0 tous les navg points.
@@ -158,26 +153,14 @@ def _array_average(a0, navg, weighted=False, valid=None, missing=None):
 
 def _remap_y(z0, y0, y):
     """ z = remap (z0, y0, y)
-            interpole les donnees du tableau z0 sur un nouveau y."""
+            interpole les donnees du tableau z0 sur un nouveau y.
+            utile pour regridder les donnees meteo genre temp
+    """
 
     z = np.zeros([np.size(z0, 0), np.size(y)])
     for i in np.arange(np.size(z, 0)):
         z[i, :] = np.interp(y, np.flipud(y0), np.flipud(z0[i, :]))
     return z
-
-#  wtf is this ??
-def ncep_remap(var, lat, lon, latorb, lonorb):
-    n = np.size(latorb, 0)
-    var2 = np.zeros([n, np.size(var, 0)])
-
-    for i in np.arange(n):
-        d = np.sqrt((lat - latorb[i]) ** 2)
-        xlat = d.argmin()
-        d = np.sqrt((lon - lonorb[i]) ** 2)
-        xlon = d.argmin()
-        var2[i, :] = var[:, xlat, xlon]
-
-    return var2
 
 
 # Generic calipso file class
