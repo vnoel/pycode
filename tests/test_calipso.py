@@ -51,6 +51,12 @@ def test_arrays(cal1file, navg=30):
     assert atb.shape[0]==np.floor(1.*nprof/navg)
     assert atb.shape[1]==nz
     
+    mol = cal1file.mol(navg=navg)
+    temp = cal1file.temperature(navg=navg)
+    for var in mol,temp:
+    	assert var.shape[0]==np.floor(1.*nprof/navg)
+    	assert var.shape[1]==nz_met
+    
 
 if __name__=='__main__':
     test_read_l1()

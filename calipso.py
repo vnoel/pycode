@@ -23,6 +23,7 @@ static_path = os.path.dirname(__file__) + '/staticdata/'
 lidar_alt = np.loadtxt(static_path + 'lidaralt.asc')
 met_alt = np.loadtxt(static_path + 'metalt.asc')
 
+# maximum molecular atb for normalization
 atb_max = {'ZN': 1e-4, 'ZD': 1}
 
 # maximum integrated atb for calibration in the 26-28 km range
