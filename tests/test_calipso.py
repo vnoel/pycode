@@ -9,7 +9,7 @@ test_l1_file='/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30/2013/2013_04_07/CAL_LID_L1-
 
 nz = 583
 nz_met = 33
-nprof = 56189
+nprof = 56190
 
 @pytest.fixture(scope="module")
 def cal1file():
@@ -23,20 +23,25 @@ def test_date(cal1file):
     assert cal1file.month == 4
     assert cal1file.day == 7
     
+
+def load_vectors(cal1file, navg=1):
+    
+    lon, lat = cal1file.coords(navg=navg)
+    time = cal1file.time(navg=navg)
+    utc  = cal1file.utc_time(navg=navg)
+    elev = cal1file.surface_elevation(navg=navg)
+    return lon, lat
+
     
 def test_nprof(cal1file):
     
-    lon, lat = cal1file.coords(navg=1)
-    time = cal1file.time(navg=1)
-    ut  = cal1file.utc_time(navg=1)
-    assert len(lat)==nprof
-    
-   
-def test_nprof_avg(cal1file, navg=30):
-    
-    lon, lat = cal1file.coords(navg=navg)
-    assert len(lat)==np.floor(1.*nprof/navg)
-    
+    vectors = load_vectors(cal1file,navg=1)
+    for vector in vectors:
+        assert len(vector)==nprof
+    vectors = load_vectors(cal1file, navg=30)
+    for vector in vectors:
+        assert len(vector)==np.floor(1.*nprof/30)
+        
     
 def test_nz(cal1file):
     

@@ -43,7 +43,7 @@ def _vector_average(v0, navg, missing=None, valid=None):
     if navg == 1:
         return v0
 
-    n = np.size(v0, 0) / navg
+    n = np.floor(1. * np.size(v0, 0) / navg)
     v = np.zeros(n)
     if valid is None:
         valid = np.ones_like(v0)
@@ -117,7 +117,7 @@ def _array_average(a0, navg, weighted=False, valid=None, missing=None):
         w = None
 
     # create averaged array a with number of averaged profiles n
-    n = np.size(a0, 0) / navg
+    n = np.floor(1. * np.size(a0, 0) / navg)
     a = np.zeros([n, np.size(a0, 1)])
     if valid is None:
         # si on n'a pas d'info sur les profils valides, on suppose qu'ils le sont tous
@@ -291,10 +291,10 @@ class Cal1(_Cal):
 
         return nprof
 
-    def utc_time(self, navg=30, idx=(0, -1)):
+    def utc_time(self, navg=30, idx=None):
         var = self.hdf.select('Profile_UTC_Time')
         time = var[:].squeeze()
-        if idx[0] > 0 and idx[1] > -1:
+        if idx is not None:
             time = time[idx[0]:idx[1]]
         # if self.valid_rms_profiles is not None:
         #     time = time[self.valid_rms_profiles]
@@ -325,7 +325,7 @@ class Cal1(_Cal):
             datetimes.append(profile_datetime)
         return np.array(datetimes)
 
-    def time(self, navg=30, idx=(0, -1)):
+    def time(self, navg=30, idx=None):
         """
         Reads time for CALIOP profiles, averaged on navg
         shape [nprof]
@@ -334,7 +334,8 @@ class Cal1(_Cal):
         """
         var = self.hdf.select('Profile_Time')
         time = var[:].squeeze()
-        time = time[idx[0]:idx[1]]
+        if idx is not None:
+        	time = time[idx[0]:idx[1]]
 
         if navg > 1:
             n = np.size(time, 0) / navg
@@ -347,7 +348,7 @@ class Cal1(_Cal):
 
         return time
 
-    def coords(self, navg=30, idx=(0, -1)):
+    def coords(self, navg=30, idx=None):
         """
         Reads coordinates for CALIOP profiles, averaged on navg
         shape [nprof]
@@ -390,7 +391,7 @@ class Cal1(_Cal):
             atbstd = self.atb[prof, :]
         return atbstd
 
-    def atb(self, navg=30, prof=None, idx=(0, -1)):
+    def atb(self, navg=30, prof=None, idx=None):
         """
         Reads the Attenuated Total Backscatter 532nm from CALIOP file
         shape [nprof, nz]
@@ -435,7 +436,7 @@ class Cal1(_Cal):
         p = self._read_var("Pressure", navg, idx=idx)
         return p
 
-    def mol(self, navg=30, prof=None, idx=(0, -1)):
+    def mol(self, navg=30, prof=None, idx=None):
         """
         Reads the ancillary molecular number density from CALIOP file
         shape [nprof, nlevels]
@@ -445,7 +446,7 @@ class Cal1(_Cal):
             mol = mol[prof, :]
         return mol
 
-    def temperature(self, navg=30, idx=(0, -1)):
+    def temperature(self, navg=30, idx=None):
         """
         Reads the ancillary temperature field in degC from CALIOP file
         shape [nprof, nlevels]
