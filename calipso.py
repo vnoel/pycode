@@ -218,12 +218,13 @@ class Cal1(_Cal):
 
         _Cal.__init__(self, filename)
         self.valid_rms_profiles = None
+        self.lidar_alt = lidar_alt
+        self.met_alt = met_alt
         if max_rms is not None:
             rms = self.parallel_rms_baseline(navg=1)
             self.valid_rms_profiles = (rms < max_rms)
 
-	def _read_sds(varname):
-	    
+    def _read_sds(self, varname):
         try:
             hdfvar = self.hdf.select(varname)
         except:
@@ -240,7 +241,7 @@ class Cal1(_Cal):
         of the variable over navg profiles
         """
 
-		var = self._read_sds(varname)
+        var = self._read_sds(varname)
         if var.ndim == 1:
             print 'sorry, ndim=1 not implemented in _read_std'
             return None
