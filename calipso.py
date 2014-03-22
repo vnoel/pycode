@@ -257,6 +257,9 @@ class Cal1(_Cal):
         considers only profiles with valid RMS if required at file opening
         """
         
+        if navg==0:
+            return []
+        
         var = self._read_sds(varname)
         if navg > np.size(var, 0):
             return None
@@ -295,6 +298,8 @@ class Cal1(_Cal):
         return nprof
 
     def utc_time(self, navg=30, idx=None):
+        if navg==0:
+            return []
         time = self._read_var('Profile_UTC_Time', navg=1)
         if navg > np.size(time, 0):
             return None
@@ -310,8 +315,11 @@ class Cal1(_Cal):
         return time
 
     def datetimes(self, navg=30):
-
+        if navg==0:
+            return []
         utc = self.utc_time(navg=navg)
+        if utc is None:
+            return None
         datetimes = []
         for u in utc:
             y = np.floor(u / 10000.)
@@ -333,7 +341,8 @@ class Cal1(_Cal):
         Example:
             time = c.time(navg=15)
         """
-        
+        if navg==0:
+            return []
         time = self._read_var('Profile_Time', navg=1, idx=idx)
         if navg > len(time):
             return None

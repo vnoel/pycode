@@ -12,58 +12,68 @@ nz_met = 33
 nprof = 56190
 
 @pytest.fixture(scope="module")
-def cal1file():
+def c1():
     c = calipso.Cal1(test_l1_file)
     return c
 
 
-def test_date(cal1file):
+def test_date(c1):
     
-    assert cal1file.year==2013
-    assert cal1file.month == 4
-    assert cal1file.day == 7
+    assert c1.year==2013
+    assert c1.month == 4
+    assert c1.day == 7
     
 
-def load_vectors(cal1file, navg=1):
+def load_vectors(c1, navg=1):
     
-    lon, lat = cal1file.coords(navg=navg)
-    time = cal1file.time(navg=navg)
-    utc  = cal1file.utc_time(navg=navg)
-    elev = cal1file.surface_elevation(navg=navg)
-    tropot = cal1file.tropopause_temperature(navg=navg)
-    tropoz = cal1file.tropopause_height(navg=navg)
-    rh = cal1file.rh(navg=navg)
-    return lon, lat, time, utc, elev, tropot, tropoz, rh
+    lon, lat = c1.coords(navg=navg)
+    vectors = [lon, lat]
+    for func in c1.time, c1.utc_time, c1.datetimes, c1.surface_elevation:
+        vectors.append(func(navg=navg))
+    for func in c1.tropopause_height, c1.tropopause_temperature:
+        vectors.append(func(navg=navg))
+    return vectors
 
     
-def test_nprof(cal1file):
-    
-    vectors = load_vectors(cal1file,navg=1)
+def test_nprof(c1):
+    vectors = load_vectors(c1,navg=1)
     for vector in vectors:
         assert len(vector)==nprof
-    vectors = load_vectors(cal1file, navg=30)
+        
+        
+def test_nprof_avg(c1):
+    vectors = load_vectors(c1, navg=30)
     for vector in vectors:
         assert len(vector)==np.floor(1.*nprof/30)
-    vectors = load_vectors(cal1file, navg=1000000)
+        
+        
+def test_nprof_too_many(c1):
+    vectors = load_vectors(c1, navg=1000000)
     for vector in vectors:
         assert vector is None
         
+        
+def test_nprof_not_enough(c1):
+    vectors = load_vectors(c1,navg=0)
+    for vector in vectors:
+        assert vector == []
+        
     
-def test_nz(cal1file):
+def test_nz(c1):
     
-    alt = cal1file.lidar_alt
-    assert len(cal1file.lidar_alt)==nz
-    assert len(cal1file.met_alt)==nz_met
+    alt = c1.lidar_alt
+    assert len(c1.lidar_alt)==nz
+    assert len(c1.met_alt)==nz_met
     
         
-def test_arrays(cal1file, navg=30):
+def test_arrays_shape(c1, navg=30):
     
-    for func in cal1file.atb, cal1file.perp:
+    for func in c1.atb, c1.perp, c1.atb1064:
         var = func(navg=navg)
         assert var.shape[0]==np.floor(1.*nprof/navg)
         assert var.shape[1]==nz
     
-    for func in cal1file.mol,  cal1file.temperature, cal1file.rh:
+    for func in c1.mol,  c1.temperature, c1.rh, c1.pressure:
         var = func(navg=navg)
         assert var.shape[0]==np.floor(1.*nprof/navg)
         assert var.shape[1]==nz_met
