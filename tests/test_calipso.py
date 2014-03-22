@@ -30,7 +30,7 @@ def load_vectors(cal1file, navg=1):
     time = cal1file.time(navg=navg)
     utc  = cal1file.utc_time(navg=navg)
     elev = cal1file.surface_elevation(navg=navg)
-    return lon, lat
+    return lon, lat, time, utc, elev
 
     
 def test_nprof(cal1file):
