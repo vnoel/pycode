@@ -257,7 +257,10 @@ class Cal1(_Cal):
         considers only profiles with valid RMS if required at file opening
         """
         
-        var = self._read_sds(varname)        
+        var = self._read_sds(varname)
+        if navg > np.size(var, 0):
+            return None
+        
         if idx is None:
             data = var[...]
         else:
@@ -292,20 +295,18 @@ class Cal1(_Cal):
         return nprof
 
     def utc_time(self, navg=30, idx=None):
-        var = self.hdf.select('Profile_UTC_Time')
-        time = var[:].squeeze()
+        time = self._read_var('Profile_UTC_Time', navg=1)
+        if navg > np.size(time, 0):
+            return None
         if idx is not None:
             time = time[idx[0]:idx[1]]
-        # if self.valid_rms_profiles is not None:
-        #     time = time[self.valid_rms_profiles]
-        if navg > 1:
+        if time is not None and navg > 1:
             n = np.size(time, 0) / navg
             time2 = np.zeros(n)
             for i in np.arange(n):
                 time2[i] = time[i * navg]
             time = time2
 
-        var.endaccess()
         return time
 
     def datetimes(self, navg=30):
@@ -332,19 +333,16 @@ class Cal1(_Cal):
         Example:
             time = c.time(navg=15)
         """
-        var = self.hdf.select('Profile_Time')
-        time = var[:].squeeze()
-        if idx is not None:
-        	time = time[idx[0]:idx[1]]
-
-        if navg > 1:
+        
+        time = self._read_var('Profile_Time', navg=1, idx=idx)
+        if navg > len(time):
+            return None
+        if time is not None and navg > 1:
             n = np.size(time, 0) / navg
             time2 = np.zeros(n)
             for i in np.arange(n):
                 time2[i] = time[i * navg]
             time = time2
-
-        var.endaccess()
 
         return time
 
@@ -1127,69 +1125,3 @@ class Cal2(_Cal):
         shape [nprof, nlaymax]
         """
         return self._read_var('Feature_Optical_Depth_532', idx=idx)
-
-
-import unittest
-import random
-
-
-def randomdate():
-    year = random.randrange(2006, 2009)
-    month = random.randrange(13)
-    day = random.randrange(32)
-    return year, month, day
-
-
-class TestCal1(unittest.TestCase):
-    def setUp(self):
-        # choisir un fichier CALIPSO au hasard...
-        from sites import l1_night_files
-
-        files = []
-        while len(files) == 0:
-            files = l1_night_files(*randomdate())
-        self.filename = files[random.randrange(len(files))]
-
-        print 'Using file ' + self.filename + ', because why not'
-
-        self.cal = Cal1(self.filename)
-
-    def testFilename(self):
-        self.assertEqual(self.filename, self.cal.__repr__())
-
-    def testAverageTooMuchProfiles(self):
-        lon, lat = self.cal.coords(100000000)
-
-    def testAverageTooLittleProfiles(self):
-        lon, lat = self.cal.coords(0)
-
-    def testAveraging(self):
-        lon, lat = self.cal.coords(1)
-        nproftotal = lon.shape[0]
-        lon, lat = self.cal.coords(15)
-        nprof = lon.shape[0]
-        self.assertEqual(nproftotal / 15, nprof)
-
-    def testNumberOfProfilesIsTheSameInArrays(self):
-        navg = (1, 15, 19, 1000)
-        for n in navg:
-            lon, lat = self.cal.coords(n)
-            nprof = lon.shape[0]
-            atb = self.cal.atb(n)
-            perp = self.cal.perp(n)
-            atb1064 = self.cal.atb1064(n)
-            pressure = self.cal.pressure(n)
-            mol = self.cal.mol(n)
-            temperature = self.cal.temperature(n)
-            rh = self.cal.rh(n)
-            self.assertEqual(atb.shape[0], nprof)
-            self.assertEqual(perp.shape[0], nprof)
-            self.assertEqual(atb1064.shape[0], nprof)
-            self.assertEqual(pressure.shape[0], nprof)
-            self.assertEqual(mol.shape[0], nprof)
-            self.assertEqual(temperature.shape[0], nprof)
-            self.assertEqual(rh.shape[0], nprof)
-
-
-if __name__ == '__main__':
-    unittest.main()
