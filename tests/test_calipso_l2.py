@@ -4,15 +4,30 @@
 import pytest
 import calipso_l2 as calipso
 import numpy as np
+from pyhdf.SD import HDF4Error
 
 
 l2_file='/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.02/2012/2012_01_01/CAL_LID_L2_05kmCLay-Prov-V3-02.2012-01-01T10-04-03ZN.hdf'
+nonexistent_file='/really_wrong_path/one_more_time/this_file.hdf'
+not_hdf_file='/users/noel/pycode/calipso.py'
+folder_instead_of_file='/users/noel/'
+
+nprof = 3728
 
 @pytest.fixture(scope='module')
 def c2():
     c = calipso.Cal2(l2_file)
     return c
     
+
+def test_files():
+    with pytest.raises(HDF4Error):
+        c = calipso.Cal2(nonexistent_file)
+    with pytest.raises(HDF4Error):
+        c = calipso.Cal2(not_hdf_file)
+    with pytest.raises(HDF4Error):
+        c = calipso.Cal2(folder_instead_of_file)
+
 
 def load_vectors(c2):
     lon, lat = c2.coords()
@@ -26,4 +41,4 @@ def load_vectors(c2):
 def test_vectors(c2):
     vectors = load_vectors(c2)
     for vector in vectors:
-        assert np.size(vector, 0) == 3728
+        assert np.size(vector, 0) == nprof
