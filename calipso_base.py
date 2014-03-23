@@ -8,6 +8,7 @@
 from pyhdf.SD import SD, SDC
 import warnings
 import os
+import datetime
 
 
 class _Cal:
