@@ -13,6 +13,10 @@ import numpy.ma as ma
 from calipso_base import *
 
 
+static_path = os.path.dirname(__file__) + '/staticdata/'
+lidar_alt = np.loadtxt(static_path + 'lidaralt.asc')
+met_alt = np.loadtxt(static_path + 'metalt.asc')
+
 # maximum molecular atb for normalization
 atb_max = {'ZN': 1e-4, 'ZD': 1}
 

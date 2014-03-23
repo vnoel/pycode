@@ -3,7 +3,7 @@
 
 import pytest
 import numpy as np
-import calipso
+import calipso_l1 as calipso
 
 test_l1_file='/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30/2013/2013_04_07/CAL_LID_L1-ValStage1-V3-30.2013-04-07T10-26-26ZN.hdf'
 

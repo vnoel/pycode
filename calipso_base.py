@@ -10,11 +10,6 @@ import warnings
 import os
 
 
-static_path = os.path.dirname(__file__) + '/staticdata/'
-lidar_alt = np.loadtxt(static_path + 'lidaralt.asc')
-met_alt = np.loadtxt(static_path + 'metalt.asc')
-
-
 class _Cal:
     """
     Trying to open a non-existing CALIOP file gives an exception
