@@ -197,48 +197,40 @@ class Cal1(_Cal):
 
         return lon, lat
 
-    def surface_elevation(self, navg=30, prof=None, idx=None):
+    def surface_elevation(self, navg=30, idx=None):
         """
         Reads the surface elevation from CALIOP file
         shape [nprof]
         """
         elev = self._read_var('Surface_Elevation', navg, idx=idx)
-        if prof is not None:
-            elev = elev[prof, :]
         return elev
 
-    def perp(self, navg=30, prof=None, idx=None):
+    def perp(self, navg=30, idx=None):
         """
         Reads the perpendicular signal from CALIOP file
         shape [nprof, nz]
         """
         perp = self._read_var('Perpendicular_Attenuated_Backscatter_532',
                               navg, idx=idx)
-        if prof:
-            perp = perp[prof, :]
         return perp
 
-    def atb_std(self, navg=30, prof=None):
+    def atb_std(self, navg=30):
         """
         Standard deviation from the Attenuated Total Backscatter 532nm from CALIOP file
         shape [nprof/navg, nz]
         """
         atbstd = self._read_std('Total_Attenuated_Backscatter_532', navg)
-        if prof:
-            atbstd = self.atb[prof, :]
         return atbstd
 
-    def atb(self, navg=30, prof=None, idx=None):
+    def atb(self, navg=30, idx=None):
         """
         Reads the Attenuated Total Backscatter 532nm from CALIOP file
         shape [nprof, nz]
         """
         atb = self._read_var('Total_Attenuated_Backscatter_532', navg, idx=idx)
-        if prof:
-            atb = atb[prof, :]
         return atb
 
-    def parallel_rms_baseline(self, navg=30, prof=None, idx=None):
+    def parallel_rms_baseline(self, navg=30, idx=None):
         """
         Reads the Parallel RMS Baseline at 532nm from CALIOP file
         shape [nprof]
@@ -246,23 +238,17 @@ class Cal1(_Cal):
         units = counts
         """
         rms = self._read_var('Parallel_RMS_Baseline_532', navg, idx=idx, missing=-9999.)
-        if prof:
-            rms = rms[prof, :]
         return rms
 
-    def ccu_532(self, navg=30, prof=None, idx=None):
+    def ccu_532(self, navg=30, idx=None):
         au = self._read_var('Calibration_Constant_Uncertainty_532', navg, idx=idx)
-        if prof:
-            au = au[prof, :]
         return au
 
-    def atb1064(self, navg=30, prof=None, idx=None):
+    def atb1064(self, navg=30, idx=None):
         """
         Reads the Attenuated Total Backscatter 1064nm from CALIOP file
         """
         atb = self._read_var('Attenuated_Backscatter_1064', navg, idx=idx)
-        if prof:
-            atb = atb[prof, :]
         return atb
 
     def pressure(self, navg=30, idx=None):
@@ -273,14 +259,12 @@ class Cal1(_Cal):
         p = self._read_var("Pressure", navg, idx=idx)
         return p
 
-    def mol(self, navg=30, prof=None, idx=None):
+    def mol(self, navg=30, idx=None):
         """
         Reads the ancillary molecular number density from CALIOP file
         shape [nprof, nlevels]
         """
         mol = self._read_var('Molecular_Number_Density', navg, idx=idx)
-        if prof:
-            mol = mol[prof, :]
         return mol
 
     def temperature(self, navg=30, idx=None):
@@ -310,19 +294,19 @@ class Cal1(_Cal):
 
         return p
 
-    def mol_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=None):
+    def mol_on_lidar_alt(self, navg=30, alt=lidar_alt, metalt=met_alt, idx=None):
         """
         Reads the ancillary molecular number density from CALIOP file,
         interpolated on
         CALIOP altitude levels.
         shape [nprof, nz]
         """
-        mol0 = self.mol(navg=navg, prof=prof, idx=idx)
+        mol0 = self.mol(navg=navg, idx=idx)
         mol = _remap_y(mol0, metalt, alt)
 
         return mol
 
-    def mol_calibration_coef(self, mol=None, atb=None, navg=30, prof=None,
+    def mol_calibration_coef(self, mol=None, atb=None, navg=30, 
                              alt=lidar_alt, metalt=met_alt, idx=None, navgh=50, zmin=30,
                              zmax=34):
         """
@@ -333,9 +317,9 @@ class Cal1(_Cal):
         shape [nprof]
         """
         if mol is None and atb is None:
-            mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt,
+            mol = self.mol_on_lidar_alt(navg=navg, alt=alt,
                                         metalt=metalt, idx=idx)
-            atb = self.atb(navg=navg, prof=prof, idx=idx)
+            atb = self.atb(navg=navg, idx=idx)
 
         # remove atb and molecular unfit for calibration purposes
         # this level of backscattering is most probably due to noise
@@ -368,7 +352,7 @@ class Cal1(_Cal):
 
         return coef
 
-    def mol_on_lidar_alt_calibrated(self, navg=30, prof=None, alt=lidar_alt,
+    def mol_on_lidar_alt_calibrated(self, navg=30, alt=lidar_alt,
                                     navgh=50, metalt=met_alt, idx=None, zcal=(30, 34), atb=None):
         """
         Returns an estimate of the molecular backscatter at 532 nm, computed
@@ -380,10 +364,10 @@ class Cal1(_Cal):
         
         atb can be passed as an argument if it's been read and averaged already.
         """
-        mol = self.mol_on_lidar_alt(navg=navg, prof=prof, alt=alt,
+        mol = self.mol_on_lidar_alt(navg=navg, alt=alt,
                                     metalt=metalt, idx=idx)
         if atb is None:
-            atb = self.atb(navg=navg, prof=prof, idx=idx)
+            atb = self.atb(navg=navg, idx=idx)
 
         coef = self.mol_calibration_coef(mol=mol, atb=atb, zmin=zcal[0],
                                          zmax=zcal[1], navgh=navgh)
@@ -396,18 +380,16 @@ class Cal1(_Cal):
 
         return mol
 
-    def temperature_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=None):
+    def temperature_on_lidar_alt(self, navg=30, alt=lidar_alt, metalt=met_alt, idx=None):
         """
         Returns the ancillary temperature field in degC, interpolated on
         CALIOP altitude levels.
         """
         t0 = self.temperature(navg=navg, idx=idx)
         t = _remap_y(t0, metalt, alt)
-        if prof:
-            t = t[prof, :]
         return t
 
-    def rh_on_lidar_alt(self, navg=30, prof=None, alt=lidar_alt, metalt=met_alt, idx=None):
+    def rh_on_lidar_alt(self, navg=30, alt=lidar_alt, metalt=met_alt, idx=None):
         """
         Returns the ancillary relative humidity field from the CALIOP file,
         interpolated on CALIOP altitude levels.
@@ -415,30 +397,26 @@ class Cal1(_Cal):
         rh0 = self.rh(navg=navg, idx=idx)
         rh = _remap_y(rh0, metalt, alt)
 
-        if prof:
-            rh = rh[prof, :]
         return rh
 
-    def scattering_ratio(self, navg=30, prof=None, alt=None, metalt=None, idx=None):
+    def scattering_ratio(self, navg=30, alt=None, metalt=None, idx=None):
         """
         Returns the scattering ratio, i.e. the ratio between the attenuated
         total backscatter and the molecular
         backscatter, both at 532 nm, both read from the CALIOP file.
         """
         mol_calib = self.mol_on_lidar_alt_calibrated(navg=navg,
-                                                     prof=prof, alt=alt, metalt=metalt, idx=idx)
-        atb = self.atb(navg=navg, prof=prof, idx=idx)
+                                                     alt=alt, metalt=metalt, idx=idx)
+        atb = self.atb(navg=navg, idx=idx)
         sr = atb / mol_calib
         return sr
 
-    def tropopause_height(self, navg=30, prof=None, idx=None):
+    def tropopause_height(self, navg=30, idx=None):
         """
         Reads the ancillary tropopause height, in km, from the CALIOP file.
         shape [nprof]
         """
         tropoz = self._read_var('Tropopause_Height', navg, idx=idx)
-        if prof:
-            tropoz = tropoz[prof]
         return tropoz
 
     def tropopause_temperature(self, navg=30, idx=None):
