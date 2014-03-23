@@ -16,7 +16,7 @@ from calipso_base import *
 class Cal2(_Cal):
     """
     Class to process CALIOP Level 2 files.
-    No averaging is possible here given the nature of some variables.
+    No averaging is possible here given the qualitative nature of variables. (can't average altitudes etc.)
     example use:
         
         from calipso import Cal2
@@ -31,7 +31,7 @@ class Cal2(_Cal):
 
     def _read_var(self, var, idx=None):
         """
-        internal helping func to read a variable (1D or 2D) in HDF file
+        read a variable (1D or 2D) in HDF file
         """
 
         hdfvar = self.hdf.select(var)
@@ -45,29 +45,13 @@ class Cal2(_Cal):
         hdfvar.endaccess()
         return data
 
-    def lat(self, idx=None):
-        """
-        Returns latitude for profiles.
-        shape [nprof]
-        """
-
-        # the [:,1] is because level 2 vectors contain 3 values, that describe
-        # the parameter for the first profile of the averaged section, the last profile,
-        # and an average. The middle value is the average, that's what we use.
-
-        return self._read_var('Latitude', idx=idx)[:, 1]
-
-    def lon(self, idx=None):
-        """
-        Returns longitude for profiles.
-        shape [nprof]
-        """
-        return self._read_var('Longitude', idx=idx)[:, 1]
-
     def coords(self, idx=None):
         """
         Returns longitude and latitude for profiles.
         shape [nprof]
+        # the [:,1] is because level 2 vectors contain 3 values, that describe
+        # the parameter for the first profile of the averaged section, the last profile,
+        # and an average. The middle value is the average, that's what we use.
         """
         lat = self._read_var('Latitude', idx=idx)[:, 1]
         lon = self._read_var('Longitude', idx=idx)[:, 1]
