@@ -16,7 +16,12 @@ def c2():
 
 def load_vectors(c2):
     lon, lat = c2.coords()
-    return lon, lat
+    vectors = [lon, lat]
+    for func in c2.time, c2.utc_time, c2.datetime, c2.datetime2, c2.off_nadir_angle:
+        vectors.append(func())
+    for func in c2.tropopause_height, c2.tropopause_temperature, c2.dem_surface_elevation, c2.lidar_surface_elevation:
+        vectors.append(func())
+    return vectors
 
 def test_vectors(c2):
     vectors = load_vectors(c2)
