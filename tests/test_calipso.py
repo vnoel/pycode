@@ -30,7 +30,7 @@ def load_vectors(c1, navg=1):
     vectors = [lon, lat]
     for func in c1.time, c1.utc_time, c1.datetimes, c1.surface_elevation:
         vectors.append(func(navg=navg))
-    for func in c1.tropopause_height, c1.tropopause_temperature:
+    for func in c1.tropopause_height, c1.tropopause_temperature, c1.parallel_rms_baseline:
         vectors.append(func(navg=navg))
     return vectors
 
@@ -68,7 +68,7 @@ def test_nz(c1):
         
 def test_arrays_shape(c1, navg=30):
     
-    for func in c1.atb, c1.perp, c1.atb1064:
+    for func in c1.atb, c1.perp, c1.atb_std, c1.atb1064:
         var = func(navg=navg)
         assert var.shape[0]==np.floor(1.*nprof/navg)
         assert var.shape[1]==nz
