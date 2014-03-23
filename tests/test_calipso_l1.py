@@ -4,7 +4,7 @@
 import pytest
 import numpy as np
 import calipso_l1 as calipso
-from pyhdf import HDF4Error
+from pyhdf.SD import HDF4Error
 
 l1_file='/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30/2013/2013_04_07/CAL_LID_L1-ValStage1-V3-30.2013-04-07T10-26-26ZN.hdf'
 nonexistent_file='/really_wrong_path/one_more_time/this_file.hdf'
