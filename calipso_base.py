@@ -9,6 +9,7 @@ from pyhdf.SD import SD, SDC
 import warnings
 import os
 import datetime
+import numpy as np
 
 
 class _Cal:
