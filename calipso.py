@@ -33,8 +33,9 @@ iatb_bounds = {'ZN': [1e-5, 8e-5], 'ZD': [-8e-3, 8e-3]}
 # Useful maths
 
 def _vector_average(v0, navg, missing=None, valid=None):
-    """ v = _vector_average (v0, navg)
-        moyenne le vector v0 tous les navg points.
+    """
+    v = _vector_average (v0, navg)
+    moyenne le vector v0 tous les navg points.
     """
 
     v0 = v0.squeeze()
