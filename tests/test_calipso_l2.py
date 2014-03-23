@@ -21,4 +21,4 @@ def load_vectors(c2):
 def test_vectors(c2):
     vectors = load_vectors(c2)
     for vector in vectors:
-        assert np.size(vector, 0) == 12
+        assert np.size(vector, 0) == 3728
