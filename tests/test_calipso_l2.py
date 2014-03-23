@@ -16,5 +16,9 @@ def c2():
 
 def load_vectors(c2):
     lon, lat = c2.coords()
-    print np.size(lon, 0)
-    assert np.size(lon, 0) == 12
+    return lon, lat
+
+def test_vectors(c2):
+    vectors = load_vectors(c2)
+    for vector in vectors:
+        assert np.size(vector, 0) == 12
