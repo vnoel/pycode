@@ -8,9 +8,10 @@ V. Noel 2008-2014
 LMD/CNRS
 """
 
+import os
 import numpy as np
 import numpy.ma as ma
-from calipso_base import _Cal
+from calipso_base import _Cal, _vector_average, _array_std, _array_average, _remap_y
 
 
 static_path = os.path.dirname(__file__) + '/staticdata/'
