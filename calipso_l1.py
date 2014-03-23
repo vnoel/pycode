@@ -10,7 +10,7 @@ LMD/CNRS
 
 import numpy as np
 import numpy.ma as ma
-from calipso_base import *
+from calipso_base import _Cal
 
 
 static_path = os.path.dirname(__file__) + '/staticdata/'
