@@ -42,3 +42,12 @@ def test_vectors(c2):
     vectors = load_vectors(c2)
     for vector in vectors:
         assert np.size(vector, 0) == nprof
+        
+        
+def test_layers(c2):
+    nlay, base, top = c2.layers()
+    assert len(nlay)==nprof
+    assert np.size(base,0)==nprof
+    assert np.size(top,0)==nprof
+    assert np.size(base,1)==10
+    assert np.size(top,1)==10
