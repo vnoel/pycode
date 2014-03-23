@@ -24,8 +24,10 @@ def c1():
 def test_files():
     with pytest.raises(HDF4Error):
         c = calipso.Cal1(nonexistent_file)
-    c = calipso.Cal1(not_hdf_file)
-    c = calipso.Cal1(folder_instead_of_file)
+    with pytest.raises(HDF4Error):
+        c = calipso.Cal1(not_hdf_file)
+    with pytest.raises(HDF4Error):
+        c = calipso.Cal1(folder_instead_of_file)
 
 
 def test_date(c1):
