@@ -8,7 +8,6 @@ V. Noel 2010
 
 import netCDF4
 import numpy as np
-import matplotlib.pyplot as plt
 
 # private functions
 
@@ -62,7 +61,7 @@ class wrf(object):
         t = self.nc.variables['Times']
         ts = []
         ts = [ttxt.tostring() for ttxt in t[:,:]]
-        return t
+        return ts
 
     def time(self, it=0):
         t = self.nc.variables['Times'][it,:]
