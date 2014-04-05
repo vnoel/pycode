@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+# V. Noel 2008-2014
+# LMD/CNRS
+
 """
 Read CALIPSO lidar data files
 level 1 and level 2.
 
-V. Noel 2008-2014
-LMD/CNRS
+This module is a container for Cal1 and Cal2 classes that do the actual file reading.
 """
 
 
