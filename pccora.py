@@ -143,6 +143,7 @@ def pccora_read(file):
     ident['launchtime'] = ident['datetime'] + timedelta(seconds=ident['ascenttime'][0])
     
     junk = np.fromfile(fid, dtype=syspar, count=1)
+    del junk
     
     data = np.fromfile(fid, dtype=pccoradata, count=25)
     data = convert_object_to_dict(data, pccoradata.names)
