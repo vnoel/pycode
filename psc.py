@@ -47,20 +47,16 @@ def classify_psc_type(r, depol):
         
     return psc_type
 
-def _plot_type_colors():
-    colors = ['#000033', '#0000FF', '#00FF00', '#FF0000']
-    return colors
+_plot_type_colors = ['#000033', '#0000FF', '#00FF00', '#FF0000']
 
 def plot_type_cmap():
     from matplotlib.colors import ListedColormap
-    colors = _plot_type_colors()
-    cmap = ListedColormap(colors)
+    cmap = ListedColormap(_plot_type_colors)
     return cmap
     
 def plot_type_legend():
     from matplotlib.patches import Rectangle
     import matplotlib.pyplot as plt
-    colors = _plot_type_colors()
-    liste_rec = [Rectangle((0, 0), 1, 1, fc=color) for color in colors]
-    labels = [types[i] for i in types]
+    liste_rec = [Rectangle((0, 0), 1, 1, fc=color) for color in _plot_type_colors]
+    labels = psc_id.keys()
     plt.legend(liste_rec, labels)
