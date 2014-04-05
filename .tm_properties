@@ -1,5 +1,3 @@
-TM_GIT = "/usr/local/git/bin/git"
-
 exclude = "*.pyc"
 include = "{*,.tm_properties}"
 softTabs = true
