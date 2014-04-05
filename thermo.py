@@ -126,7 +126,7 @@ n_esat = 1000.
 ln_esat_lut = np.linspace(ln_esat_min, ln_esat_max, num=n_esat)
 ft_as_f_ln_esat = np.interp(ln_esat_lut, ln_esat_as_f_t, ft)
 
-def water_vapor_saturation_pressure_over_ice_ln_lut(T):
+def water_vapor_saturation_pressure_over_ice_ln_lut(T, ft_lut):
     i = np.argmin(np.abs(T-ft_lut))
     ln_esat = ln_esat_lut[i]
     return ln_esat
