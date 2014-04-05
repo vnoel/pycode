@@ -1,4 +1,4 @@
-# strato.py
+# thermo.py
 
 # useful functions for water vapor stuff...
 
