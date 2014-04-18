@@ -39,7 +39,7 @@ def rake_caliop_l2(y='2008', m='8', target='out'):
                     pass
         current += timedelta(days=1)
     
-    print n, 'files linked in ', target
+    print(n, 'files linked in ', target)
     return
 
 

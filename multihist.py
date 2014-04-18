@@ -8,9 +8,9 @@ def multihist(xvals, bins=10, normed=0, bottom=None,
 
       #some integrity checks up front
       if type == 'bi' and len(xvals) != 2:
-    	  raise ValueError, 'need exactly two data sets for "bi" multihist: %d given' % len(xvals)
+    	  raise ValueError('need exactly two data sets for "bi" multihist: %d given' % len(xvals))
       if patch_kwargs is not None and len(patch_kwargs) != len(xvals):
-    	  raise ValueError, 'need same number of patch kwargs and data sets'
+    	  raise ValueError('need same number of patch kwargs and data sets')
 
       #calculate the common bins, more or less stolen from numpy.histogram
       xvals = [npy.asarray(x).ravel() for x in xvals]
@@ -36,7 +36,7 @@ def multihist(xvals, bins=10, normed=0, bottom=None,
       stay_on_top = True
       if type == 'beside':
     	  if npy.iterable(width):
-    		  raise ValueError, 'no sequence of widths allowed for "beside" multihist'
+    		  raise ValueError('no sequence of widths allowed for "beside" multihist')
     	  width /= len(xn)
     	  delta = width
     	  if align == 'edge':
@@ -44,14 +44,14 @@ def multihist(xvals, bins=10, normed=0, bottom=None,
     	  elif align == 'center':
     		  offset = ((len(xn) / -2.0 + 0.5) * width)
     	  else:
-    		  raise ValueError, 'invalid alignment: %s' % align
+    		  raise ValueError('invalid alignment: %s' % align)
     	  if gap is None:
     		  gap = 0
     	  paint_width = width - gap
       elif type == 'bi':
     	  stay_on_top = False
       elif type != 'overlap':
-    	  raise ValueError, 'invalid multihist type: %s' % type
+    	  raise ValueError('invalid multihist type: %s' % type)
 
       #build the patches
       patch_list = []
@@ -69,7 +69,7 @@ def multihist(xvals, bins=10, normed=0, bottom=None,
 			  patches = pylab.bar(obins[:-1], rn, width=paint_width, bottom=bottom,
     							  align=align, log=log, linewidth=0)
     	  else:
-    		  raise ValueError, 'invalid orientation: %s' % orientation
+    		  raise ValueError('invalid orientation: %s' % orientation)
     	  patch_list.append(cbook.silent_list('Patch', patches))
     	  offset += delta
     	  on_top = on_top and stay_on_top

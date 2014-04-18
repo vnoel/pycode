@@ -91,7 +91,7 @@ def regrid_profiles(pvec, pprof, vprof):
     vprof2 = np.empty([nprof, pvec.size])
     for i in np.arange(nprof):
         if not np.all(np.diff(pprof[i,:]) < 0):
-            print 'Warning : Pressure values are not all decreasing'
+            print('Warning : Pressure values are not all decreasing')
         vprof2[i,:] = np.interp(pvec, pprof[i,::-1], vprof[i,::-1])
         
     return vprof2
@@ -102,9 +102,9 @@ def regrid_array_z(zvec, zarr, varr, kind='linear'):
     varr2 = np.empty([zvec.size, n2])
     for i in np.arange(n2):
         if not np.all(np.diff(zarr[:,i]) >= 0):
-            print 'Warning: altitude values should be increasing.'
-            print zarr[:,i]
-            print np.diff(zarr[:,i])
+            print('Warning: altitude values should be increasing.')
+            print(zarr[:,i])
+            print(np.diff(zarr[:,i]))
         f = interp1d(zarr[:,i], varr[:,i], kind=kind, bounds_error=False)
         varr2[:,i] = f(zvec)
             
@@ -125,7 +125,7 @@ def regrid_array(pvec, parr, varr, kind='linear'):
     assert np.abs(np.max(pvec)-np.max(parr)) < 800, 'Check your pressures (possible linear/log confusion)'
     
     if parr.shape[0] == (varr.shape[0]-1):
-        print 'Warning: varr and parr not same vertical length. Trying to fix it...'
+        print('Warning: varr and parr not same vertical length. Trying to fix it...')
         varr = varr[:-1,:,:]
     
     assert parr.shape[0] == varr.shape[0], 'Pressure and variable must have same vertical length'
@@ -135,14 +135,14 @@ def regrid_array(pvec, parr, varr, kind='linear'):
     for i in np.arange(n2):
         for j in np.arange(n3):
             if not np.all(np.diff(parr[:,i,j]) < 0):
-                print 'Warning : Pressure values are not all decreasing'
+                print('Warning : Pressure values are not all decreasing')
             if kind is 'linear':
                 varr2[:,i,j] = np.interp(pvec, parr[::-1,i,j], varr[::-1,i,j])
             elif kind in ('nearest', 'cubic', 'zero', 'slinear', 'quadratic'):
                 f = interp1d(parr[::-1,i,j], varr[::-1,i,j], kind=kind, bounds_error=False)
                 varr2[:,i,j] = f(pvec)
             else:
-                print 'Unknown interpolation method'
+                print('Unknown interpolation method')
                 
     return varr2
 
@@ -175,7 +175,7 @@ def regrid_array_on_logp(parr, varr, n=1000, kind='linear'):
 wrftestfile = '/users/noel/Projects/blue_penguin/analysis2006/wrfout_d01_2006-06-27_00:00:00'
 
 def _pcolor_w(ax, lat, pres, w, logscale=False):
-    print lat.shape, pres.shape, w.shape
+    print(lat.shape, pres.shape, w.shape)
     ax.pcolormesh(lat, pres, w, vmin=-2, vmax=2)
     ax.set_xlim(-75, -64)
     if logscale:
@@ -190,7 +190,7 @@ def test_array_regridding():
     import matplotlib.pyplot as plt
     import numpy as np
     
-    print 'Reading WRF 3.2.1 data'
+    print('Reading WRF 3.2.1 data')
     it = 1      # 03:00 on 2006-06-27
     wrffile = wrf.wrf(wrftestfile)
     wrftime = wrffile.time(it=it)
@@ -199,10 +199,10 @@ def test_array_regridding():
     wrfpres = wrffile.pressure(it=it)
     wrffile.close()
     
-    print wrftime, wrfptop
+    print(wrftime, wrfptop)
     wrfw = wrfw[:-1,:,:]
     
-    print wrfw.shape, wrfpres.shape
+    print(wrfw.shape, wrfpres.shape)
     
     # 1st test : regridding on a linear-step pressure vector
     pvec = np.r_[1000:1:-1.]
@@ -258,13 +258,13 @@ def test_profiles_regridding():
     n1=1300
     n2=1625
     
-    print 'Reading CALIOP data'
+    print('Reading CALIOP data')
     calfile = calipso.Cal1('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v2.01/2006/2006_06_27/CAL_LID_L1-Prov-V2-01.2006-06-27T03-28-22ZN.hdf')
     lon, lat = calfile.coords(navg=30)
     lon, lat = lon[n1:n2], lat[n1:n2]
     calfile.close()
 
-    print 'Reading WRF 3.2.1 data'
+    print('Reading WRF 3.2.1 data')
     it = 1      # 03:00 on 2006-06-27
     wrffile = wrf.wrf(wrftestfile)
     wrftime = wrffile.time(it=it)
@@ -273,12 +273,12 @@ def test_profiles_regridding():
     wrfpres = wrffile.pressure(it=it, on_orbit=(lon, lat))
     wrffile.close()
 
-    print wrftime, wrfptop
+    print(wrftime, wrfptop)
     wrfw = wrfw[:,:-1]
     
     # 1st try : regridding on a linear-step pressure vector
     pvec = np.r_[1000:1:-1.]
-    print 'Interpolating stuff'
+    print('Interpolating stuff')
     wrfw2 = regrid_profiles(pvec, wrfpres, wrfw)
 
     # showing a random profile

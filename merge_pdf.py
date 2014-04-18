@@ -17,10 +17,10 @@ def merge_pdf_with_basename(basename, cleanup=False):
 
     files = glob.glob(basename + '_*.pdf')
     if len(files) == 0:
-        print 'No pdf file matching %s criteria' % basename
+        print('No pdf file matching %s criteria' % basename)
         return
         
-    print 'Merging ', files, ' in %s.pdf' % basename
+    print('Merging ', files, ' in %s.pdf' % basename)
 
     for f in files:
         input1 = pyPdf.PdfFileReader(file(f, 'rb'))
@@ -31,6 +31,6 @@ def merge_pdf_with_basename(basename, cleanup=False):
     fileout.close()
     
     if cleanup:
-        print 'Deleting %d files' % (len(files))
+        print('Deleting %d files' % (len(files)))
         for f in files:
             os.remove(f)

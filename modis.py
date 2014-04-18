@@ -28,11 +28,11 @@ def find_file_for_orbit (y, m, d, orbit):
     p = modispath (y, m, d)
     files = glob.glob(p + '*' + orbit + '*.hdf')
     if not files:
-        print "No MODIS data found"
+        print("No MODIS data found")
         return None
 
     if len(files)>1:
-        print "More than 1 MODIS file has been found : ", files
+        print("More than 1 MODIS file has been found : ", files)
 
     return files[0]
 

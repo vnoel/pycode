@@ -10,9 +10,9 @@ destdir='./'
 year = 2010
 month = 4
 
-print 'On range %04d-%02d' % (year, month)
+print('On range %04d-%02d' % (year, month))
 
-days = range(32)
+days = list(range(32))
 
 '''
 for day in days:
@@ -26,5 +26,5 @@ files = glob.glob(srcdir+mask)
 for file in files:
     day = int(file[-17:-15])
     daydir = destdir+'%04d_%02d_%02d' % (year, month, day)
-    print 'Moving '+file+' in '+daydir
+    print('Moving '+file+' in '+daydir)
     shutil.move(file, daydir)

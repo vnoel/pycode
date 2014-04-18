@@ -63,10 +63,10 @@ def hno3_frost_point(hno3mr, wvmr, pressure):
 
             frost_point[i] = brentq(f, 170., 210.)
             if frost_point[i] < 180:
-                print frost_point[i]
-                print hno3mr[i]
-                print wvmr[i]
-                print pressure[i]
+                print(frost_point[i])
+                print(hno3mr[i])
+                print(wvmr[i])
+                print(pressure[i])
             
     else:
         

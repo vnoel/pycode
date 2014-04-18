@@ -8,10 +8,10 @@ import numpy as np
 
 def main(wrffile='/mnt/cfmipfs/lov/homedata/noel/Projects/RedPanda/run.20060627.79571/WPS/geo_em.d01.nc', xlon=-60, xlat=-71):
 
-    print 'Looking in ', wrffile
-    print 'Requested coordinates : '
-    print '  lon = ', xlon
-    print '  lat = ', xlat
+    print('Looking in ', wrffile)
+    print('Requested coordinates : ')
+    print('  lon = ', xlon)
+    print('  lat = ', xlat)
 
     nc = netCDF4.Dataset(wrffile)
     lon = nc.variables['XLONG_M'][:]
@@ -32,10 +32,10 @@ def main(wrffile='/mnt/cfmipfs/lov/homedata/noel/Projects/RedPanda/run.20060627.
                 jmin = j
                 mindist = dist[i,j]
                 
-    print 'Found'
-    print '  lon = ', lon[imin,jmin]
-    print '  lat = ', lat[imin,jmin]
-    print 'at indexes ', imin, jmin
+    print('Found')
+    print('  lon = ', lon[imin,jmin])
+    print('  lat = ', lat[imin,jmin])
+    print('at indexes ', imin, jmin)
 
 if __name__ == '__main__':
     import plac

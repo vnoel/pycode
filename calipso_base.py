@@ -117,7 +117,7 @@ def _array_average(a0, navg, weighted=False, valid=None, missing=None):
 
     if weighted and (navg % 2 != 1):
         weighted = False
-        print "_array_average: navg is even, turning weights off"
+        print("_array_average: navg is even, turning weights off")
 
     # create triangle-shaped weights
     if weighted:

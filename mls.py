@@ -179,5 +179,5 @@ class MLSHNO3(MLS):
 if __name__ == '__main__':
     testco = '/homedata/noel/Data/MLS/2007/MLS-Aura_L2GP-CO_v03-30-c01_2007d239.he5'
     mlsco = MLSCO(testco)
-    print mlsco.data_info()
+    print(mlsco.data_info())
     mlsco.close()

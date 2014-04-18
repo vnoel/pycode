@@ -48,7 +48,7 @@ class SatelliteObs(Obs):
         '''
 
         idx = (self.lon > -9000) & (self.lat > -9000)
-        traj = geometry.asMultiPoint(zip(self.lon[idx], self.lat[idx]))
+        traj = geometry.asMultiPoint(list(zip(self.lon[idx], self.lat[idx])))
         hits = domain.intersection(traj)
         if hits.is_empty:
             return None

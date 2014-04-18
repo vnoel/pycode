@@ -14,7 +14,7 @@ def ecmwf_file (year, month, prefix):
 
 def read_named_var(year, month, varname,level=-1, lon360=None):
     f = ecmwf_file (year, month, varname)
-    print('Reading '+f)
+    print(('Reading '+f))
     nc = netCDF4.Dataset(f)
     
     lon = nc.variables['lon'][:]
@@ -54,7 +54,7 @@ def ecmwf_surface_file(year, month, prefix):
     
 def read_surface_var(year, month, varname):
     f = ecmwf_surface_file(year, month, varname)
-    print('Reading '+f)
+    print(('Reading '+f))
     nc = netCDF4.Dataset(f)
     
     lon = nc.variables['lon'][:]
@@ -119,7 +119,7 @@ class Ecmwf:
 
     def pl_var(self, year, month, varname,level=-1, lon180=None):
         f = self.pl_file (year, month, varname)
-        print('Reading '+f)
+        print(('Reading '+f))
         try:
             nc = netCDF4.Dataset(f)
         except:

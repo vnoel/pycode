@@ -6,7 +6,7 @@ from PIL import Image
 def main(figname):
 
     im = Image.open(figname)
-    print im.info
+    print(im.info)
 
 
 if __name__=='__main__':

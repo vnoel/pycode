@@ -64,7 +64,7 @@ def find_pccora_file(date):
     if not files:
         return None
     if len(files) > 1:
-        print 'More than 1 file for that date, using first'
+        print('More than 1 file for that date, using first')
     files = files[0]
     return files
              
@@ -165,47 +165,47 @@ def pccora_read(file):
 def main(file='/users/noel/Projects/blue5/rs/2008/07/radiosonde_rothera_2008070111.edt'):
     
     head, ident, data, hires = pccora_read(file)
-    print '## HEADER'
+    print('## HEADER')
     ndata = head['nrecdata']
     
-    print 'Copyright', head['copyright']    
-    print 'len ident', head['lenident']
-    print 'datatype:',head['datatype']
-    print 'ndata:', ndata
-    print
+    print('Copyright', head['copyright'])    
+    print('len ident', head['lenident'])
+    print('datatype:',head['datatype'])
+    print('ndata:', ndata)
+    print()
 
-    print '## DATA IDENTIFIER'
+    print('## DATA IDENTIFIER')
     
-    print 'Station type: ',ident['stationtype']
-    print 'Coords: ', ident['lat'], ident['long']
-    print 'Date: ', ident['year'], ident['month'], ident['day'], ident['hour'], ident['min']
-    print 'Message data: ', ident['messyear'], ident['messmonth'], ident['messday'], ident['messhour']
-    print 'Cloud group: ', ident['cloudgroup']
-    print 'Weather group: ', ident['weathergroup']
-    print 'Napp: ', ident['napp']
-    print 'Surface pressure [hPa]: ', ident['surfpress'] 
-    print 'Surface temperature [K]: ', 0.1 * ident['surftemp']
-    print 'Surface humidity [% RH]: ', ident['surfhum']
-    print 'Surface winddir [deg]:', ident['surfwinddir']
-    print 'Surface windspeed [m/s]:', ident['surfwindspeed']*0.1
-    print 'Temperature correction: ', ident['tempcorr']
-    print 'Sonde number: ', ident['sondenum']
-    print 'Sounding number: ', ident['soundingnum']
-    print 'Wind computing mode: ', ident['windcompmode']
-    print 'Wind mode: ', ident['windmode']
-    print 'Reference pressure, temp, hum:', ident['refpress'], ident['reftemp'], ident['refhum']
+    print('Station type: ',ident['stationtype'])
+    print('Coords: ', ident['lat'], ident['long'])
+    print('Date: ', ident['year'], ident['month'], ident['day'], ident['hour'], ident['min'])
+    print('Message data: ', ident['messyear'], ident['messmonth'], ident['messday'], ident['messhour'])
+    print('Cloud group: ', ident['cloudgroup'])
+    print('Weather group: ', ident['weathergroup'])
+    print('Napp: ', ident['napp'])
+    print('Surface pressure [hPa]: ', ident['surfpress']) 
+    print('Surface temperature [K]: ', 0.1 * ident['surftemp'])
+    print('Surface humidity [% RH]: ', ident['surfhum'])
+    print('Surface winddir [deg]:', ident['surfwinddir'])
+    print('Surface windspeed [m/s]:', ident['surfwindspeed']*0.1)
+    print('Temperature correction: ', ident['tempcorr'])
+    print('Sonde number: ', ident['sondenum'])
+    print('Sounding number: ', ident['soundingnum'])
+    print('Wind computing mode: ', ident['windcompmode'])
+    print('Wind mode: ', ident['windmode'])
+    print('Reference pressure, temp, hum:', ident['refpress'], ident['reftemp'], ident['refhum'])
     
-    print '## DATA'
+    print('## DATA')
     
     for i in np.r_[0:25]:
-        print i
-        print 'Elapsed time since release [s]:', data['time'][i]
-        print 'Time: ', data['datetime'][i]
-        print 'Scaled P and P [hPa]:', data['spress'][i], data['press'][i]
-        print 'Temperature [K, C]: ', data['temp'][i], data['temp'][i]-273
-        print 'Wind direction[deg]: ', data['winddir'][i]
-        print 'Wind speed[m/s]: ', data['windspeed'][i]
-        print 'Coords: ', data['long'][i], data['lat'][i]
+        print(i)
+        print('Elapsed time since release [s]:', data['time'][i])
+        print('Time: ', data['datetime'][i])
+        print('Scaled P and P [hPa]:', data['spress'][i], data['press'][i])
+        print('Temperature [K, C]: ', data['temp'][i], data['temp'][i]-273)
+        print('Wind direction[deg]: ', data['winddir'][i])
+        print('Wind speed[m/s]: ', data['windspeed'][i])
+        print('Coords: ', data['long'][i], data['lat'][i])
 
 
     

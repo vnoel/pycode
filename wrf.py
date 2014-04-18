@@ -45,8 +45,8 @@ class wrf(object):
     def coords(self, it=0):
         if it >= self.nc.variables['XLONG'].shape[0]:
             print('*ERROR* : Requested timestamp not in WRF file')
-            print('Requested timestamp index : ', it)
-            print('Number of time indexes in WRF file', self.nc.variables['XLONG'].shape[0])
+            print(('Requested timestamp index : ', it))
+            print(('Number of time indexes in WRF file', self.nc.variables['XLONG'].shape[0]))
             return None, None
         lon = self.nc.variables['XLONG'][it,...]
         lat = self.nc.variables['XLAT'][it,...]
