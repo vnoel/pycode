@@ -8,7 +8,7 @@
 
 import numpy as np
 from scipy.interpolate import interp1d
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 def remean(lon, lat, var, lonstep, latstep):
     lonmin, lonmax = np.min(lon), np.max(lon)
@@ -176,7 +176,7 @@ wrftestfile = '/users/noel/Projects/blue_penguin/analysis2006/wrfout_d01_2006-06
 
 def _pcolor_w(ax, lat, pres, w, logscale=False):
     print lat.shape, pres.shape, w.shape
-    pc = ax.pcolormesh(lat, pres, w, vmin=-2, vmax=2)
+    ax.pcolormesh(lat, pres, w, vmin=-2, vmax=2)
     ax.set_xlim(-75, -64)
     if logscale:
         ax.set_yscale('log')
@@ -209,7 +209,7 @@ def test_array_regridding():
     wrfw2 = regrid_array(pvec, wrfpres, wrfw)
     
     # show a random profile
-    fig = plt.figure()
+    plt.figure()
     plt.plot(wrfw[:,50,50], wrfpres[:,50,50], label='On WRF Pressure')
     plt.plot(wrfw2[:,50,50], pvec, label='regridding on linear pressure')
     plt.ylim(1000, 10)
@@ -217,7 +217,7 @@ def test_array_regridding():
     
     fakelat = np.r_[-75:-64:(75-64)/99.]
     
-    fig = plt.figure()
+    plt.figure()
     ax = plt.subplot(2,1,1)
     _pcolor_w(ax, fakelat, wrfpres[:,:,50], wrfw[:,:,50], logscale=True)
     ax.set_title('On WRF Pressure grid, logscale')
@@ -231,13 +231,13 @@ def test_array_regridding():
     wrfw2log = regrid_array(pveclog, np.log10(wrfpres), wrfw)
     
     # show a random profile
-    fig = plt.figure()
+    plt.figure()
     plt.plot(wrfw[:,50,50], np.log10(wrfpres[:,50,50]), label='On WRF pressure')
     plt.plot(wrfw2log[:,50,50], pveclog, label='regridded on linear log-step pressure')
     plt.ylim(3,1)
     plt.legend()
     
-    fig = plt.figure()
+    plt.figure()
     ax = plt.subplot(2,1,1)
     _pcolor_w(ax, fakelat, np.log10(wrfpres[:,:,50]), wrfw[:,:,50])
     ax.set_title('On WRF Pressure grid')
@@ -282,14 +282,14 @@ def test_profiles_regridding():
     wrfw2 = regrid_profiles(pvec, wrfpres, wrfw)
 
     # showing a random profile
-    fig = plt.figure()
+    plt.figure()
     plt.plot(wrfpres[100,:], wrfw[100,:], label='on WRF pressure')
     plt.plot(pvec, wrfw2[100,:], label='regridded on linear pressure')
     plt.legend()
 
     # showing arrays
     # the first plot - pressure-based grid (nonlinear)
-    fig = plt.figure()
+    plt.figure()
     ax = plt.subplot(2,1,1)
     _pcolor_w(ax, lat, wrfpres.T, wrfw.T, logscale=True)
     ax.set_title('On WRF pressure grid, logscale')
@@ -300,17 +300,17 @@ def test_profiles_regridding():
     ax.set_title('Regridded on constant linear-step pressure')
 
     # 2nd try : regridding on a log-step pressure vector
-    pveclog = pvec_log()
+    pveclog = _pvec_log()
     wrfw2log = regrid_profiles(pveclog, np.log10(wrfpres), wrfw)
 
     # showing a random profile
-    fig = plt.figure()
+    plt.figure()
     plt.plot(np.log10(wrfpres[100,:]), wrfw[100,:], label='On WRF pressure')
     plt.plot(pveclog, wrfw2log[100,:], label='Regridded on log pressure')
     plt.legend()
 
     # showing arrays
-    fig = plt.figure()
+    plt.figure()
     ax = plt.subplot(2,1,1)
     _pcolor_w(ax, lat, np.log10(wrfpres.T), wrfw.T)
     ax.set_title('On WRF log10(pressure) grid')
