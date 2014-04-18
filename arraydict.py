@@ -19,7 +19,7 @@ class ArrayDict(dict):
 
     def __init__(self, from_file=None, **kwargs):
         """
-        an ArrayDict can be created either empty
+        an ArrayDict can be created empty
             x = ArrayDict()
         or filled with content from a npz file
             x = ArrayDict('file.npz')
@@ -40,10 +40,10 @@ class ArrayDict(dict):
 
                 filelist = glob.glob(from_file)
                 if not filelist:
-                    print 'no file matching pattern', from_file
+                    print('no file matching pattern', from_file)
                 else:
                     filelist.sort()
-                    print 'Aggregating data from %d files' % len(filelist)
+                    print('Aggregating data from %d files' % len(filelist))
 
                     for f in filelist:
                         try:
@@ -78,14 +78,14 @@ class ArrayDict(dict):
         0-d arrays are ignored.
         """
 
-        arrnames = ad.keys()
+        arrnames = list(ad.keys())
         if not arrnames:
             return
 
         for arrname in arrnames:
             if np.shape(ad[arrname]) is ():
                 continue
-            if arrname in self.keys():
+            if arrname in list(self.keys()):
                 self[arrname] = np.concatenate((self[arrname], ad[arrname]), axis=axis)
             else:
                 self[arrname] = ad[arrname]
@@ -96,8 +96,8 @@ class ArrayDict(dict):
         display the list of arrays contained in self and their shape
         """
 
-        for arrname in self.keys():
-            print arrname, ':', self[arrname].shape
+        for arrname in list(self.keys()):
+            print(arrname, ':', self[arrname].shape)
 
 
     def save(self, filename, verbose=True, fill_value=-99999.):
@@ -106,7 +106,7 @@ class ArrayDict(dict):
         :type fill_value: float
         """
         if verbose:
-            print 'Saving', filename
+            print('Saving', filename)
 
         # special-case masked arrays
         masked = False
@@ -114,7 +114,7 @@ class ArrayDict(dict):
             if np.ma.isMaskedArray(self[key]):
                 masked = True
         if masked:
-            print 'Saving masked arrays with fill_value=%f' % fill_value
+            print('Saving masked arrays with fill_value=%f' % fill_value)
             copy = arraydict(**self)
             for key in copy:
                 if np.ma.isMaskedArray(copy[key]):
@@ -148,7 +148,7 @@ class ArrayDict(dict):
         the index vector must have the same number of items in the first dimension as every variable in the arraydict
         """
 
-        for arrname in self.keys():
+        for arrname in list(self.keys()):
             self[arrname] = self[arrname][idx, ...]
 
 
