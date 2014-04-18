@@ -38,16 +38,24 @@ def load_vectors(c2):
         vectors.append(func())
     return vectors
 
+
 def test_vectors(c2):
     vectors = load_vectors(c2)
     for vector in vectors:
         assert np.size(vector, 0) == nprof
         
         
-def test_layers(c2):
+def load_layers(c2):
     nlay, base, top = c2.layers()
+    layers = [base, top]
+    for func in (c2.layers_pressure, c2.midlayer_temperature):
+        layers.append(func())
+    return nlay, layers
+        
+        
+def test_layers(c2):
+    nlay, layers = load_layers(c2)
     assert len(nlay)==nprof
-    assert np.size(base,0)==nprof
-    assert np.size(top,0)==nprof
-    assert np.size(base,1)==10
-    assert np.size(top,1)==10
+    for layerinfo in layers:
+        assert np.size(layerinfo,0)==nprof
+        assert np.size(layerinfo,1)==10
