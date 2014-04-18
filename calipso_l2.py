@@ -119,7 +119,7 @@ class Cal2(_Cal):
                 [datetime.timedelta(seconds=int(ss)) for ss in seconds_into_day])
         else:
             # orbits spans more than a day, we have to compute everything
-            print(('multi date', y0, m0, d0, y1, m1, d1))
+            print('multi date', y0, m0, d0, y1, m1, d1)
             y, m, d = _decdate_to_ymd(utc)
             datetimes = [datetime.datetime(int(yy), int(mm), int(dd), 0, 0, 0) + datetime.timedelta(seconds=int(ss)) for
                          yy, mm, dd, ss in zip(y, m, d, seconds_into_day)]

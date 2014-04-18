@@ -40,10 +40,10 @@ class ArrayDict(dict):
 
                 filelist = glob.glob(from_file)
                 if not filelist:
-                    print(('no file matching pattern', from_file))
+                    print('no file matching pattern', from_file)
                 else:
                     filelist.sort()
-                    print(('Aggregating data from %d files' % len(filelist)))
+                    print('Aggregating data from %d files' % len(filelist))
 
                     for f in filelist:
                         try:
@@ -97,7 +97,7 @@ class ArrayDict(dict):
         """
 
         for arrname in list(self.keys()):
-            print((arrname, ':', self[arrname].shape))
+            print(arrname + ':', self[arrname].shape)
 
 
     def save(self, filename, verbose=True, fill_value=-99999.):
@@ -106,7 +106,7 @@ class ArrayDict(dict):
         :type fill_value: float
         """
         if verbose:
-            print(('Saving', filename))
+            print('Saving', filename)
 
         # special-case masked arrays
         masked = False
@@ -114,7 +114,7 @@ class ArrayDict(dict):
             if np.ma.isMaskedArray(self[key]):
                 masked = True
         if masked:
-            print(('Saving masked arrays with fill_value=%f' % fill_value))
+            print('Saving masked arrays with fill_value=%f' % fill_value)
             copy = arraydict(**self)
             for key in copy:
                 if np.ma.isMaskedArray(copy[key]):
