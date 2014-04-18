@@ -44,7 +44,7 @@ def read_trmm_ir(f):
 
         # .Z files are compressed using the Unix compress command and are a PITA
         # to uncompress through 3rd party libraries
-        print 'Opening compressed TRMM file through gunzip'
+        print('Opening compressed TRMM file through gunzip')
 
         import subprocess
 

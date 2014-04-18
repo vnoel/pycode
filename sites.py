@@ -131,7 +131,7 @@ def read_l2bis(calfile):
     try:
         x = mio.loadmat(calfile)
     except:
-        print 'Cannot read file ' + calfile
+        print('Cannot read file ' + calfile)
         return [None] * 5
     t = x['T_lay']
     lat = x['lat'][0, :]

@@ -44,9 +44,9 @@ class wrf(object):
     
     def coords(self, it=0):
         if it >= self.nc.variables['XLONG'].shape[0]:
-            print '*ERROR* : Requested timestamp not in WRF file'
-            print 'Requested timestamp index : ', it
-            print 'Number of time indexes in WRF file', self.nc.variables['XLONG'].shape[0]
+            print('*ERROR* : Requested timestamp not in WRF file')
+            print('Requested timestamp index : ', it)
+            print('Number of time indexes in WRF file', self.nc.variables['XLONG'].shape[0])
             return None, None
         lon = self.nc.variables['XLONG'][it,...]
         lat = self.nc.variables['XLAT'][it,...]
@@ -147,20 +147,20 @@ def map_peninsula (lon, lat, xvar, centerlon=-60, w=2000,h=2000, cb=False, cl=No
     from matplotlib.pyplot import colorbar
     import niceplots
     
-    map = basemap.Basemap(projection='lcc',lat_0=-70,lon_0=centerlon,width=w*1000,height=h*1000, resolution='i', ax=ax)
-    x, y = map(lon, lat)
+    m = basemap.Basemap(projection='lcc',lat_0=-70,lon_0=centerlon,width=w*1000,height=h*1000, resolution='i', ax=ax)
+    x, y = m(lon, lat)
     if cl is None:
-        pc = map.pcolormesh(x, y, xvar, edgecolors=ec)
+        pc = m.pcolormesh(x, y, xvar, edgecolors=ec)
     else:
-        pc = map.pcolormesh(x, y, xvar, vmin=cl[0], vmax=cl[1], edgecolors=ec)
-    map.drawmapboundary(color='grey')
+        pc = m.pcolormesh(x, y, xvar, vmin=cl[0], vmax=cl[1], edgecolors=ec)
+    m.drawmapboundary(color='grey')
     if fp:
-        map.drawmeridians(np.arange(-105,-15,15), labels=[0,0,0,1], fontproperties=fp) # left, right, top, bottom
-        map.drawparallels(np.arange(-90,90,10), labels=[1,0,0,0], fontproperties=fp) # left, right, top, bottom
+        m.drawmeridians(np.arange(-105,-15,15), labels=[0,0,0,1], fontproperties=fp) # left, right, top, bottom
+        m.drawparallels(np.arange(-90,90,10), labels=[1,0,0,0], fontproperties=fp) # left, right, top, bottom
     else:
-        map.drawmeridians(np.arange(-105,-15,15), labels=[0,0,0,1]) # left, right, top, bottom
-        map.drawparallels(np.arange(-90,90,10), labels=[1,0,0,0]) # left, right, top, bottom
-    map.drawcoastlines(color='grey')
+        m.drawmeridians(np.arange(-105,-15,15), labels=[0,0,0,1]) # left, right, top, bottom
+        m.drawparallels(np.arange(-90,90,10), labels=[1,0,0,0]) # left, right, top, bottom
+    m.drawcoastlines(color='grey')
     
     if cb:
         cbar=colorbar(pc)
@@ -170,7 +170,7 @@ def map_peninsula (lon, lat, xvar, centerlon=-60, w=2000,h=2000, cb=False, cl=No
             if cbtitle is not None:
                 cbar.set_label(cbtitle)
     
-    return map, pc
+    return m, pc
 
 def antarctica_map(maxlat=-50, lon_0=180):
     from mpl_toolkits.basemap import Basemap

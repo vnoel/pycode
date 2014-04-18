@@ -59,7 +59,7 @@ class Cal1(_Cal):
         try:
             hdfvar = self.hdf.select(varname)
         except:
-            print 'Cannot read ' + varname
+            print('Cannot read ' + varname)
             return None
             
         var = hdfvar[:].squeeze()
@@ -74,7 +74,7 @@ class Cal1(_Cal):
 
         var = self._read_sds(varname)
         if var.ndim == 1:
-            print 'sorry, ndim=1 not implemented in _read_std'
+            print('sorry, ndim=1 not implemented in _read_std')
             return None
         data = var[...]
         data = _array_std(data, navg, valid=self.valid_rms_profiles)
@@ -437,8 +437,8 @@ class Cal1(_Cal):
         import matplotlib.pyplot as plt
         from pylab import get_cmap
 
-        print 'Showing ' + dataname
-        print 'Lat range : ', latrange
+        print('Showing ' + dataname)
+        print('Lat range : ', latrange)
 
         if cmap is None:
             cmap = get_cmap('gist_stern_r')
@@ -513,8 +513,8 @@ class Cal1(_Cal):
         time = self.datetimes(navg=navg)
         import matplotlib.dates as mdates
 
-        print np.min(time), np.max(time)
-        print mintime, maxtime
+        print(np.min(time), np.max(time))
+        print(mintime, maxtime)
 
         numtime = mdates.date2num(time)
 
@@ -523,12 +523,12 @@ class Cal1(_Cal):
         else:
             mintime = mdates.date2num(mintime)
             if mintime < np.min(numtime):
-                print 'Error : mintime < min(time)'
+                print('Error : mintime < min(time)')
 
         if maxtime is None:
             maxtime = np.max(numtime)
             if maxtime > np.max(numtime):
-                print 'Error : maxtime > max(time)'
+                print('Error : maxtime > max(time)')
         else:
             maxtime = mdates.date2num(maxtime)
 
@@ -558,7 +558,7 @@ class Cal1(_Cal):
         idx = (lat > latrange[0]) & (lat < latrange[1])
         lat = lat[idx]
         atb = atb[idx, :]
-        print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
+        print('Averaging every %d profiles = %d shown profiles' % (navg, len(lat)))
         self._peek(lat, lidar_alt, np.log10(atb), latrange,
                    'Attenuated Total Backscatter', -4, -2)
 
@@ -576,7 +576,7 @@ class Cal1(_Cal):
         idx = (lat > latrange[0]) & (lat < latrange[1])
         lat = lat[idx]
         depol = depol[idx, :]
-        print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
+        print('Averaging every %d profiles = %d shown profiles' % (navg, len(lat)))
 
         self._peek(lat, lidar_alt, depol, latrange,
                    'Volumic Depolarization Ratio', 0, 0.8)
@@ -593,7 +593,7 @@ class Cal1(_Cal):
         idx = (lat > latrange[0]) & (lat < latrange[1])
         lat = lat[idx]
         cr = cr[idx, :]
-        print 'Averaging every %d profiles = %d shown profiles' % (navg, len(lat))
+        print('Averaging every %d profiles = %d shown profiles' % (navg, len(lat)))
 
         self._peek(lat, lidar_alt, cr, latrange,
                    'Volumic Color Ratio', 0.2, 1.)  # , cmap=get_cmap('jet'))
