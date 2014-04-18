@@ -112,11 +112,11 @@ def colorbar():
 
 def lon_formatter_func(x):
     if x == 0:
-        return u'0°'
+        return '0°'
     elif x > 0:
-        return u'%3.0f°E' % x
+        return '%3.0f°E' % x
     else:
-        return u'%3.0f°W' % -x
+        return '%3.0f°W' % -x
 
 
 lon_formatter = FuncFormatter(lon_formatter_func)
@@ -124,11 +124,11 @@ lon_formatter = FuncFormatter(lon_formatter_func)
 
 def lat_formatter_func(x):
     if x == 0:
-        return u'0°'
+        return '0°'
     elif x > 0:
-        return u'%3.0f°N' % x
+        return '%3.0f°N' % x
     else:
-        return u'%3.0f°S' % -x
+        return '%3.0f°S' % -x
 
 
 lat_formatter = FuncFormatter(lat_formatter_func)
@@ -190,7 +190,7 @@ def infobox(text, alpha=0.7, location='top left'):
         x = 0.95
         y = 0.95
     else:
-        raise Exception, 'This location is not supported yet'
+        raise Exception('This location is not supported yet')
 
     ax.text(x, y, text, transform=ax.transAxes, va='top', ha=ha, bbox=props, fontproperties=myfont['med'])
 
@@ -287,7 +287,7 @@ def xaxis_day(ax):
 def xaxis_year_month(ax):
     ax.xaxis.axis_date()
 
-    ax.xaxis.set_minor_locator(mdates.MonthLocator(range(2, 13)))
+    ax.xaxis.set_minor_locator(mdates.MonthLocator(list(range(2, 13))))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter('%b'))
     ax.xaxis.set_major_locator(mdates.YearLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
