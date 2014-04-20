@@ -13,6 +13,7 @@ import numpy as np
 import numpy.ma as ma
 import datetime
 from calipso_base import _Cal, _vector_average, _array_std, _array_average, _remap_y
+import netCDF4
 
 
 static_path = os.path.dirname(__file__) + '/staticdata/'
@@ -147,21 +148,8 @@ class Cal1(_Cal):
     def datetimes(self, navg=30):
         if navg==0:
             return []
-        utc = self.utc_time(navg=navg)
-        if utc is None:
-            return None
-        datetimes = []
-        for u in utc:
-            y = np.floor(u / 10000.)
-            m = np.floor((u - y * 10000) / 100.)
-            d = np.floor(u - y * 10000 - m * 100)
-            y = int(y) + 2000
-            m = int(m)
-            d = int(d)
-            seconds_into_day = np.int((u - np.floor(u)) * 24. * 3600.)
-            profile_datetime = datetime.datetime(y, m, d, 0, 0, 0) + \
-                               datetime.timedelta(seconds=seconds_into_day)
-            datetimes.append(profile_datetime)
+        time = self.time(navg=navg)
+        datetimes = netCDF4.num2date(time, units='seconds since 1993-01-01')
         return np.array(datetimes)
 
     def time(self, navg=30, idx=None):
@@ -170,6 +158,7 @@ class Cal1(_Cal):
         shape [nprof]
         Example:
             time = c.time(navg=15)
+        Units: seconds from January 1, 1993
         """
         if navg==0:
             return []
