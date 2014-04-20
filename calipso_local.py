@@ -1,35 +1,15 @@
 #!/usr/bin/env python
 #encoding:utf-8
 
-"""
-Utility functions to find CALIOP files on Climserv or ICARE servers
-Created by VNoel on 2014-02-27
-"""
+# Created by VNoel on 2014-04-20
+
+'''
+Utility functions to list available CALIOP files on local host
+'''
 
 import os
-import socket
 import glob
-
-
-# server-dependent paths pointing to CALIOP level 1 and level 2 data
-
-hostname = socket.gethostname()
-if hostname == 'access.icare.univ-lille1.fr':
-    # ICARE
-    l1dir = ('/DATA/LIENS/CALIOP/CAL_LID_L1.v3.01',)
-    l2dir = ('/DATA/LIENS/CALIOP/05kmCLay.v3.02',
-             '/DATA/LIENS/CALIOP/05kmCLay.v3.01')
-    l2adir = ('/DATA/LIENS/CALIOP/05kmALay.v3.01',)
-else:
-    # CLIMSERV
-    l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30',
-             '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.02',
-             '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.01')
-    l2dir = ('/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.02',
-             '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.01',
-             '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01',
-             '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
-
+from localpaths import l1dir, l2dir
 
 def l1_files(y, m, d, mask='*'):
     """
@@ -66,15 +46,16 @@ def l1_file_from_l2_file(y, m, d, l2file):
     return l1file
 
 
-def l2_files(y, m, d, mask):
+def l2_files(y, m, d, mask='*'):
+    goodpath = '/'
     datepath = '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
     for l2d in l2dir:
         calpath = l2d + datepath
         if os.path.isdir(calpath):
-            files = glob.glob(calpath + mask + '.hdf')
-            return files
-    return None
-
+            goodpath = calpath
+    files = glob.glob(calpath + mask + '.hdf')
+    return files
+    
 
 def l2_cfiles(y, m, d, mask):
     return l2_files(y, m, d, mask)
@@ -139,3 +120,16 @@ def read_l2bis(calfile):
     zbase = x['zbase']
     ztop = x['ztop']
     return lon, lat, zbase, ztop, t
+
+
+def main(year=2007, month=5, day=4):
+    
+    l1files = l1_files(year, month, day)
+    print('Available CALIOP L1 files : ', l1files)
+    l2files = l2_files(year, month, day)
+    print('Available CALIOP l2 files : ', l2files)
+
+
+if __name__ == '__main__':
+    import plac
+    plac.call(main)
