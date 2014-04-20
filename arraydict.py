@@ -78,14 +78,14 @@ class ArrayDict(dict):
         0-d arrays are ignored.
         """
 
-        arrnames = list(ad.keys())
+        arrnames = list(ad)
         if not arrnames:
             return
 
         for arrname in arrnames:
             if np.shape(ad[arrname]) is ():
                 continue
-            if arrname in list(self.keys()):
+            if arrname in list(self):
                 self[arrname] = np.concatenate((self[arrname], ad[arrname]), axis=axis)
             else:
                 self[arrname] = ad[arrname]
@@ -96,7 +96,7 @@ class ArrayDict(dict):
         display the list of arrays contained in self and their shape
         """
 
-        for arrname in list(self.keys()):
+        for arrname in list(self):
             print(arrname + ':', self[arrname].shape)
 
 
@@ -148,7 +148,7 @@ class ArrayDict(dict):
         the index vector must have the same number of items in the first dimension as every variable in the arraydict
         """
 
-        for arrname in list(self.keys()):
+        for arrname in list(self):
             self[arrname] = self[arrname][idx, ...]
 
 
