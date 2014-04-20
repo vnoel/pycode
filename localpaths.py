@@ -36,7 +36,7 @@ elif hostname.endswith(climserv_id):
              '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
 
 # ECMWF data
-if hostname.endswith(icare_id):
+if hostname.endswith(climserv_id):
     eradir = '/bdd/OPERA/NETCDF/GLOBAL_1125/4xdaily/'
     
 
