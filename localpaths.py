@@ -8,10 +8,10 @@ Created by VNoel on 2014-02-27
 
 import socket
 
-# server-dependent paths pointing to CALIOP level 1 and level 2 data
-
 hostname = socket.gethostname()
-if hostname == 'access.icare.univ-lille1.fr':
+
+# host-dependent paths pointing to CALIOP level 1 and level 2 data
+if hostname.endswith('icare.univ-lille1.fr'):
     # ICARE
     l1dir = ('/DATA/LIENS/CALIOP/CAL_LID_L1.v3.01',)
     l2dir = ('/DATA/LIENS/CALIOP/05kmCLay.v3.02',
