@@ -2,14 +2,11 @@
 #encoding:utf-8
 
 """
-Utility functions to find CALIOP files on Climserv or ICARE servers
+Utility functions to find data files on Climserv or ICARE servers
 Created by VNoel on 2014-02-27
 """
 
-import os
 import socket
-import glob
-
 
 # server-dependent paths pointing to CALIOP level 1 and level 2 data
 
