@@ -4,85 +4,10 @@
 import numpy as np
 import netCDF4
 
-# for backward compatibility
-# pre-class
 
-def ecmwf_file (year, month, prefix):
-    p = '/bdd/OPERA/NETCDF/GLOBAL_1125/4xdaily/AN_PL/' + str(year) + '/'
-    name = p + prefix + ('.%04d%02d.aph.GLOBAL_1125.nc' % (year, month))
-    return name
-
-def read_named_var(year, month, varname,level=-1, lon360=None):
-    f = ecmwf_file (year, month, varname)
-    print('Reading ' + f)
-    nc = netCDF4.Dataset(f)
-    
-    lon = nc.variables['lon'][:]
-    lat = nc.variables['lat'][:]
-    levels = nc.variables['level'][:]
-    
-    if level != -1:
-        levels = levels[level]
-    
-    # passer de 0->360 a -180->180 (comme ds fichiers calipso)
-    if not lon360:
-        lon[lon >= 180] -= 360.
-
-    add_offset = 0.
-    scale_factor = 1.
-    
-    # getattr ne marche pas avec les structures netCDF, pfff
-    if hasattr(nc.variables[varname], 'add_offset'):
-        add_offset = nc.variables[varname].add_offset
-        
-    if hasattr(nc.variables[varname], 'scale_factor'):
-        scale_factor = nc.variables[varname].scale_factor
-        
-    if level==-1:
-        data = (nc.variables[varname][:] * scale_factor) + add_offset
-    else:
-        data = (nc.variables[varname][:,level,:,:] * scale_factor) + add_offset
-    
-    nc.close()
-    
-    return lon, lat, levels, data
-    
-def ecmwf_surface_file(year, month, prefix):
-    p = '/bdd/OPERA/NETCDF/GLOBAL_1125/4xdaily/AN_SF/' + str(year) + '/'
-    name = p + prefix + ('.%04d%02d.ash.GLOBAL_1125.nc' % (year, month))
-    return name
-    
-def read_surface_var(year, month, varname):
-    f = ecmwf_surface_file(year, month, varname)
-    print('Reading ' + f)
-    nc = netCDF4.Dataset(f)
-    
-    lon = nc.variables['lon'][:]
-    lat = nc.variables['lat'][:]
-    
-    # passer aux coord calipso
-    lon[lon >= 180] -= 360.
-    
-    x = nc.variables[varname]
-    
-    add_offset = 0.
-    scale_factor = 1.
-    
-    if hasattr(x, 'add_offset'):
-        add_offset = x.add_offset
-        
-    if hasattr(x, 'scale_factor'):
-        scale_factor = x.scale_factor
-        
-    data = (x[:] * scale_factor) + add_offset
-    nc.close()
-    
-    return lon, lat, data
-
-#bla bla bla
-
-# la classe ecmwf ne correspond pas a un fichier
+# FIXME:la classe ecmwf ne correspond pas a un fichier
 # mais a un des sous-ensembles ecmwf dispos sur climserv
+# ce n'est pas bien.
 
 class Ecmwf:
 
