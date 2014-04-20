@@ -90,9 +90,12 @@ def l2_afiles(y, m, d, mask):
 
 def main(year=2007, month=5, day=4):
     
+    print('Searching CALIOP files for %04d/%02d/%02d/' % (year, month, day))
     l1files = l1_files(year, month, day)
-    print('Available CALIOP L1 files : ', l1files)
     l2files = l2_files(year, month, day)
+    print('Found %d L1 files' % len(l1files))
+    print('Found %d L2 files' % len(l2files))
+    print('Available CALIOP L1 files : ', l1files)
     print('Available CALIOP l2 files : ', l2files)
 
 
