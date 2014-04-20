@@ -88,40 +88,6 @@ def l2_afiles(y, m, d, mask):
     return files
 
 
-def l2bis_files(y, m, d, mask):
-    datepath = '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-    calpath = '/bdd/CFMIP/CAL_LID_L2bis' + datepath
-    files = glob.glob(calpath + mask + '.nc')
-    return files
-
-
-def l2bis_night_files(y, m, d):
-    return l2bis_files(y, m, d, '*ZN*')
-
-
-def l2bis_file_from_orbit(y, m, d, orbit):
-    files = l2bis_files(y, m, d, '*' + orbit + '*')
-    if not files:
-        return None
-    return files[0]
-
-
-def read_l2bis(calfile):
-    from scipy.io.matlab import mio
-
-    try:
-        x = mio.loadmat(calfile)
-    except:
-        print('Cannot read file ' + calfile)
-        return [None] * 5
-    t = x['T_lay']
-    lat = x['lat'][0, :]
-    lon = x['lon'][0, :]
-    zbase = x['zbase']
-    ztop = x['ztop']
-    return lon, lat, zbase, ztop, t
-
-
 def main(year=2007, month=5, day=4):
     
     l1files = l1_files(year, month, day)
