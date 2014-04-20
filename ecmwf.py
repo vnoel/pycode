@@ -3,6 +3,7 @@
 
 import numpy as np
 import netCDF4
+from localpath import eradir
 
 
 # FIXME:la classe ecmwf ne correspond pas a un fichier
@@ -16,13 +17,12 @@ class Ecmwf:
     # voulue pour les fichiers ECMWF
     # e.g. '075' ou '1125'
     def __init__(self, deg_res):
+        self.path = eradir + 'GLOBAL_' + deg_res + '/4xdaily'
         if deg_res=='1125':
-            self.path = '/bdd/OPERA/NETCDF/GLOBAL_1125/4xdaily/'
             self.identifier = ''
             self.desc = 'OPERA Global dataset, 1.125° res'
             res = 1.125
         elif deg_res=='075':
-            self.path = '/bdd/ERAI/NETCDF/GLOBAL_075/4xdaily/'
             self.identifier = 'ei'
             self.desc = 'ERA-Interim Global dataset, 0.75° res'
             res = 0.75
@@ -31,11 +31,10 @@ class Ecmwf:
         self.res = deg_res
         self.lat = np.r_[90.:-90.-res:-res]
         self.lon = np.r_[0:360:res]
-        
-            
+                
     def pl_file(self, year, month, varname):
-        # aph for era40 pressure level files
-        # aphei for era-interim pressure level files
+        # aph = era40 pressure level files
+        # aphei = era-interim pressure level files
         identifier = 'aph' + self.identifier
         filename = varname + '.%04d%02d.%s.GLOBAL_%s.nc' % (year, month, identifier, self.res)
         path = self.path + 'AN_PL/' + '%04d' % year + '/'

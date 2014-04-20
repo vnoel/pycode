@@ -37,7 +37,7 @@ elif hostname.endswith(climserv_id):
 
 # ECMWF data
 if hostname.endswith(climserv_id):
-    eradir = '/bdd/OPERA/NETCDF/GLOBAL_1125/4xdaily/'
+    eradir = '/bdd/OPERA/NETCDF/'
     
 
 def main():
