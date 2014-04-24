@@ -75,19 +75,8 @@ class Cal2(_Cal):
         """
         Returns an array of datetime objects based on utc_time values
         """
-        utc = self.utc_time(idx=idx)
-        datetimes = []
-        for u in utc:
-            y = np.floor(u / 10000.)
-            m = np.floor((u - y * 10000) / 100.)
-            d = np.floor(u - y * 10000 - m * 100)
-            y = int(y) + 2000
-            m = int(m)
-            d = int(d)
-            seconds_into_day = np.int((u - np.floor(u)) * 24. * 3600.)
-            profile_datetime = datetime.datetime(y, m, d, 0, 0, 0) + \
-                               datetime.timedelta(seconds=seconds_into_day)
-            datetimes.append(profile_datetime)
+        time = self.time(navg=navg)
+        datetimes = netCDF4.num2date(time, units='seconds since 1993-01-01')
         return np.array(datetimes)
 
     def datetime2(self, idx=None):
