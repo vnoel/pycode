@@ -62,7 +62,7 @@ class Cal2(_Cal):
         returns profile time (TAI)
         shape [nprof]
         """
-        return self._read_var('Profile_Time', idx=idx)[:]
+        return self._read_var('Profile_Time', idx=idx)[:][:,1]
 
     def utc_time(self, idx=None):
         """
@@ -210,6 +210,7 @@ class Cal2(_Cal):
         """
         Returns the feature classification flag by layer
         shape [nprof, nlaymax]
+        cf https://eosweb.larc.nasa.gov/sites/default/files/project/calipso/quality_summaries/CALIOP_L2VFMProducts_3.01.pdf
         """
         return self._read_var('Feature_Classification_Flags', idx=idx)
 
@@ -217,6 +218,16 @@ class Cal2(_Cal):
         """
         Returns the layer type from the feature classification flag
         shape [nprof, nlaymax]
+        
+        0 = invalid (bad or missing data) 
+        1 = "clear air"
+        2 = cloud
+        3 = aerosol
+        4 = stratospheric feature
+        5 = surface
+        6 = subsurface
+        7 = no signal (totally attenuated)
+        
         """
         f = self.flag(idx=idx)
         # type flag : bits 1 to 3
@@ -228,6 +239,15 @@ class Cal2(_Cal):
         Returs the layer subtype, as identified from the feature
         classification flag
         shape [nprof, nlaymax]
+        
+        for clouds (feature type == layer_type == 2)
+        0 = low overcast, transparent
+        1 = low overcast, opaque
+        2 = transition stratocumulus
+        3 = low, broken cumulus
+        4 = altocumulus (transparent) 5 = altostratus (opaque)
+        6 = cirrus (transparent)
+        7 = deep convective (opaque)
         """
         f = self.flag(idx=idx)
         # subtype flag : bits 10 to 12
@@ -249,6 +269,10 @@ class Cal2(_Cal):
         Returs the layer thermodynamical phase, as identified from the
         feature classification flag
         shape [nprof, nlaymax]
+        
+        0 = unknown / not determined 1 = randomly oriented ice
+        2 = water
+        3 = horizontally oriented ice
         """
         f = self.flag(idx=idx)
         # 96 = 0b1100000, bits 6 to 7
@@ -260,6 +284,10 @@ class Cal2(_Cal):
         Returns the quality flag for the layer thermodynamical phase,
         as identified from the feature classification flag
         shape [nprof, nlaymax]
+        
+        0 = none
+        1 = low
+        2 = medium 3 = high
         """
 
         f = self.flag(idx=idx)
