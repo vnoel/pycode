@@ -53,7 +53,9 @@ def l2_files(y, m, d, mask='*'):
         calpath = l2d + datepath
         if os.path.isdir(calpath):
             goodpath = calpath
-    files = glob.glob(calpath + mask + '.hdf')
+    fullmask = goodpath + mask + '.hdf'
+    print 'Looking in ' + fullmask
+    files = glob.glob(fullmask)
     return files
     
 
