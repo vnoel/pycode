@@ -12,6 +12,7 @@ hostname = socket.gethostname()
 
 icare_id = 'icare.univ-lille1.fr'
 climserv_id = 'ipsl.polytechnique.fr'
+climserv_cluster_id = 'climserv'
 
 # known data directories
 l1dir = None        # CALIOP L1
@@ -25,7 +26,7 @@ if hostname.endswith(icare_id):
     l2dir = ('/DATA/LIENS/CALIOP/05kmCLay.v3.02',
              '/DATA/LIENS/CALIOP/05kmCLay.v3.01')
     l2adir = ('/DATA/LIENS/CALIOP/05kmALay.v3.01',)
-elif hostname.endswith(climserv_id):
+elif hostname.endswith(climserv_id) or hostname.endswith(climserv_cluster_id):
     # CLIMSERV
     l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30',
              '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.02',
