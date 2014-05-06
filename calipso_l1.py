@@ -174,6 +174,13 @@ class Cal1(_Cal):
 
         return time
 
+    def altitude(self):
+        '''
+        Reads altitude levels from CALIOP metadata.
+        '''
+        pass
+        
+
     def coords(self, navg=30, idx=None):
         """
         Reads coordinates for CALIOP profiles, averaged on navg
