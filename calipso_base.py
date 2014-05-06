@@ -29,6 +29,7 @@ class _Cal:
         self.hour = int(filename[-14:-12])
         self.minutes = int(filename[-11:-9])
         self.seconds = int(filename[-8:-6])
+        self.id = filename[-25:-4]
         self.date = datetime.datetime(self.year, self.month, self.day,
                                       self.hour, self.minutes, self.seconds)
 
