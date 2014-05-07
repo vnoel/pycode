@@ -17,6 +17,7 @@ import netCDF4
 
 
 static_path = os.path.dirname(__file__) + '/staticdata/'
+
 # this is a hack while reading vdata segfaults pyhdf
 # altitude vector before November 2007
 lidar_alt_pretilt = np.loadtxt(static_path + 'lidaralt_pre2007.asc')
@@ -188,18 +189,28 @@ class Cal1(_Cal):
     def altitude(self):
         '''
         Reads altitude levels from CALIOP metadata.
+        shape [nalt=583]
         '''
-        from pyhdf import VS
-        from pyhdf import HDF
+
+        # This should work but segfaults.
         
-        hdffile = HDF.HDF(self.filename, HDF.HC.READ)
-        vs = hdffile.vstart()
-        meta_id = vs.find('metadata')
-        vd = vs.attach('metadata', write=0) # same as vs.attach(meta_id, write=0)
-        alt = vd.field('Lidar_Data_Altitudes')  # segfaults
+        #from pyhdf import VS
+        #from pyhdf import HDF
+        #
+        #hdffile = HDF.HDF(self.filename, HDF.HC.READ)
+        #vs = hdffile.vstart()
+        #meta_id = vs.find('metadata')
+        #vd = vs.attach('metadata', write=0) # same as vs.attach(meta_id, write=0)
+        #alt = vd.field('Lidar_Data_Altitudes')  # segfaults
         
         # workaround to get the altitude metadata field : use the hdf dump tool
-        # hdp dumpvd -d -n metadata -f Lidar_Data_Altitudes HDF_FILENAME
+        # lifted from http://code.ohloh.net/file?fid=pMlnajrQ2omfIKEwb6bcZlejO1U
+        
+        import subprocess
+        
+        command = 'hdp dumpvd -d -n metadata -f Lidar_Data_Altitudes ' + self.filename
+        dump = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()[0]
+        alt = np.array(dump.split(), dtype='float32')
         
         return alt
 
