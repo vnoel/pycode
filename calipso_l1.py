@@ -17,7 +17,15 @@ import netCDF4
 
 
 static_path = os.path.dirname(__file__) + '/staticdata/'
-lidar_alt = np.loadtxt(static_path + 'lidaralt.asc')
+# this is a hack while reading vdata segfaults pyhdf
+# altitude vector before November 2007
+lidar_alt_pretilt = np.loadtxt(static_path + 'lidaralt_pre2007.asc')
+# altitude vector after November 2007
+lidar_alt_posttilt = np.loadtxt(static_path + 'lidaralt_post2007.asc')
+# this has a higher chance of being the correct altitude
+lidar_alt = lidar_alt_posttilt
+
+# FIXME : need to verify if the same thing is needed for met_alt
 met_alt = np.loadtxt(static_path + 'metalt.asc')
 
 # maximum molecular atb for normalization
@@ -50,7 +58,10 @@ class Cal1(_Cal):
 
         _Cal.__init__(self, filename)
         self.valid_rms_profiles = None
-        self.lidar_alt = lidar_alt
+        if self.date < datetime.datetime(2007,12,1):
+            self.lidar_alt = lidar_alt_pretilt
+        else:
+            self.lidar_alt = lidar_alt_posttilt
         self.met_alt = met_alt
         if max_rms is not None:
             rms = self.parallel_rms_baseline(navg=1)
@@ -178,8 +189,19 @@ class Cal1(_Cal):
         '''
         Reads altitude levels from CALIOP metadata.
         '''
-        pass
+        from pyhdf import VS
+        from pyhdf import HDF
         
+        hdffile = HDF.HDF(self.filename, HDF.HC.READ)
+        vs = hdffile.vstart()
+        meta_id = vs.find('metadata')
+        vd = vs.attach('metadata', write=0) # same as vs.attach(meta_id, write=0)
+        alt = vd.field('Lidar_Data_Altitudes')  # segfaults
+        
+        # workaround to get the altitude metadata field : use the hdf dump tool
+        # hdp dumpvd -d -n metadata -f Lidar_Data_Altitudes HDF_FILENAME
+        
+        return alt
 
     def coords(self, navg=30, idx=None):
         """
