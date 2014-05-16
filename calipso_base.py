@@ -21,6 +21,7 @@ class _Cal:
 
         self.hdf = SD(filename, SDC.READ)
         self.filename = filename
+        # time of orbit start
         self.orbit = filename[-15:-4]
         self.z = self.orbit[-2:]  # zn or zd
         self.year = int(filename[-25:-21])
@@ -29,6 +30,7 @@ class _Cal:
         self.hour = int(filename[-14:-12])
         self.minutes = int(filename[-11:-9])
         self.seconds = int(filename[-8:-6])
+        # date tag + orbit start
         self.id = filename[-25:-4]
         self.date = datetime.datetime(self.year, self.month, self.day,
                                       self.hour, self.minutes, self.seconds)

@@ -29,7 +29,7 @@ def ames_read(f):
         for i in np.r_[5:5+npts]:
             
         
-        
+    # this is bullshit
         
     
     
