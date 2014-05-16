@@ -110,7 +110,7 @@ def colorbar():
     beautify_colorbar(cb)
 
 
-def lon_formatter_func(x):
+def lon_formatter_func(x, pos):
     if x == 0:
         return '0°'
     elif x > 0:
@@ -122,7 +122,7 @@ def lon_formatter_func(x):
 lon_formatter = FuncFormatter(lon_formatter_func)
 
 
-def lat_formatter_func(x):
+def lat_formatter_func(x, pos):
     if x == 0:
         return '0°'
     elif x > 0:
