@@ -42,6 +42,25 @@ class _Cal:
         self.hdf.end()
         self.hdf = None
 
+    # IO
+
+    def _read_var(self, var, idx=None):
+        """
+        read a variable (1D or 2D) in HDF file
+        """
+    
+        hdfvar = self.hdf.select(var)
+        if idx is None:
+            data = hdfvar[:]
+        else:
+            if len(hdfvar.dimensions()) == 1:
+                data = hdfvar[idx[0]:idx[1]]
+            else:
+                data = hdfvar[idx[0]:idx[1], :]
+        hdfvar.endaccess()
+        return data
+
+
 
 # Useful maths
 
