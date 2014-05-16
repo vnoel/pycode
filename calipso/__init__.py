@@ -14,3 +14,4 @@ This module is a container for Cal1 and Cal2 classes that do the actual file rea
 
 from level1 import Cal1
 from level2 import Cal2
+from vfm import VFM
