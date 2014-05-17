@@ -10,7 +10,7 @@ LMD/CNRS
 
 import numpy as np
 import datetime
-from calipso_base import _Cal
+from calipso_hdf import _Cal
 
 
 class Cal2(_Cal):

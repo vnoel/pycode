@@ -3,7 +3,7 @@
 
 # Created by VNoel 2014-05-16 12:40
 
-from calipso_base import _Cal
+from calipso_hdf import _Cal
 
 class VFM(_Cal):
     """

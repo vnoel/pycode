@@ -12,7 +12,7 @@ import os
 import numpy as np
 import numpy.ma as ma
 import datetime
-from calipso_base import _Cal, _vector_average, _array_std, _array_average, _remap_y
+from calipso_hdf import _Cal, _vector_average, _array_std, _array_average, _remap_y
 import netCDF4
 
 
