@@ -9,7 +9,7 @@ Utility functions to list available CALIOP files on local host
 
 import os
 import glob
-from localpaths import l1dir, l2dir
+from localpaths import l1dir, l2dir, l2dir_333
 
 def l1_files(y, m, d, mask='*'):
     """
@@ -46,10 +46,14 @@ def l1_file_from_l2_file(y, m, d, l2file):
     return l1file
 
 
-def l2_files(y, m, d, mask='*'):
+def l2_files(y, m, d, mask='*', havg=5):
+    if havg=0.333:
+        l2dir_list = l2dir_333
+    else:
+        l2dir_list = l2dir
     goodpath = '/'
     datepath = '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-    for l2d in l2dir:
+    for l2d in l2dir_list:
         calpath = l2d + datepath
         if os.path.isdir(calpath):
             goodpath = calpath

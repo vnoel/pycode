@@ -26,6 +26,7 @@ if hostname.endswith(icare_id):
     l2dir = ('/DATA/LIENS/CALIOP/05kmCLay.v3.02',
              '/DATA/LIENS/CALIOP/05kmCLay.v3.01')
     l2adir = ('/DATA/LIENS/CALIOP/05kmALay.v3.01',)
+    l2dir_333 = ('XXX')
 elif hostname.endswith(climserv_id) or hostname.endswith(climserv_cluster_id):
     # CLIMSERV
     l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30',
@@ -35,6 +36,7 @@ elif hostname.endswith(climserv_id) or hostname.endswith(climserv_cluster_id):
              '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.01',
              '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01',
              '/bdd/CALIPSO/Lidar_L2/05kmCLay.v2.01')
+    l2dir_333 = ('XXX')
 
 # ECMWF data
 if hostname.endswith(climserv_id):
