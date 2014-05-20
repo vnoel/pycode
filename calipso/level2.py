@@ -31,9 +31,8 @@ class Cal2(_Cal):
 
     def __init__(self, filename):
         _Cal.__init__(self, filename)
-        lat = self._read_var('Latitude')[:,:]
+        lat = self._read_var('Latitude')
         # identify 333m or more level 2 files
-        print lat.shape, lat.ndim
         if lat.shape[1] == 1:
             self.havg = 0.333
             self.iavg = 0
