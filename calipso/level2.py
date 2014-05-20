@@ -78,7 +78,7 @@ class Cal2(_Cal):
         '''
         if self.havg < 1:
             raise BaseException('333m file == no boundaries')
-        time0 = self._read_var('Profile_Time')
+        time = self._read_var('Profile_Time')
         time0, time1 = time[:,0], time[:,-1]
         return time0, time1
     
