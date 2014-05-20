@@ -31,8 +31,9 @@ class Cal2(_Cal):
 
     def __init__(self, filename):
         _Cal.__init__(self, filename)
-        lat = self._read_var('Latitude')
+        lat = self._read_var('Latitude')[:,:]
         # identify 333m or more level 2 files
+        print lat.shape, lat.ndim
         if lat.shape[1] == 1:
             self.havg = 0.333
             self.iavg = 0
@@ -58,10 +59,10 @@ class Cal2(_Cal):
         """
         if self.havg < 1.:
             raise BaseException('333m file == no boundaries')
-        lat0 = self._read_var('Latitude')[:, 0]
-        lat1 = self._read_var('Latitude')[:, -1]
-        lon0 = self._read_var('Longitude')[:, 0]
-        lon1 = self._read_var('Longitude')[:, -1]
+        lat = self._read_var('Latitude')
+        lat0, lat1 = lat[:, 0], lat[:,-1]
+        lon = self._read_var('Longitude')
+        lon0, lon1 = lon[:, 0], lon[:,-1]
         return (lon0, lat0), (lon1, lat1)
 
     def time(self, idx=None):
@@ -70,6 +71,17 @@ class Cal2(_Cal):
         shape [nprof]
         """
         return self._read_var('Profile_Time', idx=idx)[:][:, self.iavg]
+
+    def time_bounds(self):
+        '''
+        returns the time boundaries for each 5-km profile.
+        '''
+        if self.havg < 1:
+            raise BaseException('333m file == no boundaries')
+        time0 = self._read_var('Profile_Time')
+        time0, time1 = time[:,0], time[:,-1]
+        return time0, time1
+    
 
     def utc_time(self, idx=None):
         """
