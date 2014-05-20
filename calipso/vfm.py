@@ -25,23 +25,28 @@ class VFM(_Cal):
         _Cal.__init__(self, filename)
         
     def time(self):
+        
         time = self._read_var('Profile_Time')[:,0]
         return time
     
     def utc_time(self):
+        
         time = self._read_var('Profile_UTC_Time')[:,0]
         return time
     
     def coords(self):
+        
         lat = self._read_var('Latitude')[:,0]
         lon = self._read_var('Longitude')[:,0]
         return lon, lat
     
     def day_night_flags(self):
+        
         flag = self._read_var('Day_Night_Flag')[:,0]
         return flag
     
     def land_water_mask(self):
+        
         mask = self._read_var('Land_Water_Mask')[:,0]
         return mask
         
