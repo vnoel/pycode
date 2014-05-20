@@ -29,6 +29,16 @@ class Cal2(_Cal):
         
     """
 
+    def __init__(self, filename):
+        _Cal.__init__(self, filename)
+        lat = self._read_var('Latitude')
+        if lat.shape[1] == 1:
+            self.havg = 0.333
+            self.iavg = 0
+        else:
+            self.havg = 5.
+            self.iavg = 1
+
     def coords(self, idx=None):
         """
         Returns longitude and latitude for profiles.
@@ -37,22 +47,34 @@ class Cal2(_Cal):
         # the parameter for the first profile of the averaged section, the last profile,
         # and an average. The middle value is the average, that's what we use.
         """
-        lat = self._read_var('Latitude', idx=idx)[:, 1]
-        lon = self._read_var('Longitude', idx=idx)[:, 1]
+        lat = self._read_var('Latitude', idx=idx)[:, self.iavg]
+        lon = self._read_var('Longitude', idx=idx)[:, self.iavg]
         return lon, lat
+    
+    def coords_bounds(self):
+        """
+        returns the lat and lon boundaries for each 5-km profile.
+        """
+        if self.havg < 1.:
+            raise BaseException('333m file == no boundaries')
+        lat0 = self._read_var('Latitude')[:, 0]
+        lat1 = self._read_var('Latitude')[:, -1]
+        lon0 = self._read_var('Longitude')[:, 0]
+        lon1 = self._read_var('Longitude')[:, -1]
+        return (lon0, lat0), (lon1, lat1)
 
     def time(self, idx=None):
         """
         returns profile time (TAI)
         shape [nprof]
         """
-        return self._read_var('Profile_Time', idx=idx)[:][:,1]
+        return self._read_var('Profile_Time', idx=idx)[:][:, self.iavg]
 
     def utc_time(self, idx=None):
         """
         Returns utc time value (decimal time)
         """
-        time = self._read_var('Profile_UTC_Time', idx=idx)[:, 1]
+        time = self._read_var('Profile_UTC_Time', idx=idx)[:, self.iavg]
         return time
 
     def datetime(self, idx=None):
