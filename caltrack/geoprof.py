@@ -30,6 +30,11 @@ class GeoProf(object):
         lon = self._read_var('Longitude')
         return lon, lat
     
+    def time(self):
+        time = self._read_var('Time')
+        return time
+    
+    
     def altitude(self):
         ''' altitude in kilometers '''
         
