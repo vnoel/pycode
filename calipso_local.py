@@ -47,7 +47,7 @@ def l1_file_from_l2_file(y, m, d, l2file):
 
 
 def l2_files(y, m, d, mask='*', havg=5):
-    if havg=0.333:
+    if havg==0.333:
         l2dir_list = l2dir_333
     else:
         l2dir_list = l2dir
@@ -67,8 +67,8 @@ def l2_cfiles(y, m, d, mask):
     return l2_files(y, m, d, mask)
 
 
-def l2_night_files(y, m, d):
-    files = l2_files(y, m, d, '*ZN*')
+def l2_night_files(y, m, d, havg=5):
+    files = l2_files(y, m, d, '*ZN*', havg=havg)
     return files
 
 
