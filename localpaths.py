@@ -28,6 +28,7 @@ if hostname.endswith(icare_id):
              '/DATA/LIENS/CALIOP/05kmCLay.v3.01')
     l2adir = ('/DATA/LIENS/CALIOP/05kmALay.v3.01',)
     l2dir_333 = ('/DATA/LIENS/CALIOP/333mCLay/',)
+    caltrack_geoprof_dir = ('/DATA/LIENS/CALIOP/CALTRACK-5km_CS-2B-GEOPROF/',)
 elif hostname.endswith(climserv_id) or hostname.endswith(climserv_cluster_id):
     # CLIMSERV
     l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30',
@@ -38,6 +39,7 @@ elif hostname.endswith(climserv_id) or hostname.endswith(climserv_cluster_id):
             '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.01')
     # Test data only on Climserv
     l2dir_333 = ('/users/noel/data/Data/333mCLay/',)
+    caltrack_geoprof_dir = ('/bdd/CFMIP/OBS_LOCAL/ATRAIN_COLOC/CLOUDSAT_COLOC/CALTRACK-GEOPROF',)
 
 # ECMWF data
 if hostname.endswith(climserv_id):
