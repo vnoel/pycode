@@ -27,7 +27,7 @@ if hostname.endswith(icare_id):
              '/DATA/LIENS/CALIOP/05kmCLay.v3.02',
              '/DATA/LIENS/CALIOP/05kmCLay.v3.01')
     l2adir = ('/DATA/LIENS/CALIOP/05kmALay.v3.01',)
-    l2dir_333 = ('/DATA/LIENS/CALIOP/333mCLay/')
+    l2dir_333 = ('/DATA/LIENS/CALIOP/333mCLay/',)
 elif hostname.endswith(climserv_id) or hostname.endswith(climserv_cluster_id):
     # CLIMSERV
     l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30',
