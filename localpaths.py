@@ -23,7 +23,8 @@ eradir = None       # ECMWF
 if hostname.endswith(icare_id):
     # ICARE
     l1dir = ('/DATA/LIENS/CALIOP/CAL_LID_L1.v3.01',)
-    l2dir = ('/DATA/LIENS/CALIOP/05kmCLay.v3.02',
+    l2dir = ('/DATA/LIENS/CALIOP/05kmCLay.v3.30',
+             '/DATA/LIENS/CALIOP/05kmCLay.v3.02',
              '/DATA/LIENS/CALIOP/05kmCLay.v3.01')
     l2adir = ('/DATA/LIENS/CALIOP/05kmALay.v3.01',)
     l2dir_333 = ('/DATA/LIENS/CALIOP/333mCLay/')
