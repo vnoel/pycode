@@ -185,6 +185,16 @@ class Cal2(_Cal):
 
         return self._read_var('Lidar_Surface_Elevation', idx=idx)
 
+    def IGBP_Surface_Type(self, idx=None):
+        """
+        IGBP_Surface_Type:format = "Int_8" ;
+        IGBP_Surface_Type:valid_range = "1....18" ;
+        IGBP_Surface_Type:fillvalue = '\367' ;
+        IGBP_Surface_Type:range_value = "evergreen needleleaf forest, evergreen broadleaf forest, deciduous needleleaf forest, deciduous broadleaf forest, mixed forest, closed shrublands, open shrublands,woody savannas, savannas, grasslands, permanent wetlands, croplands, urban and built-up,cropland/natural vegetation mosaic, snow and ice, barren or sparsely vegetated, water bodies, tundra" ;
+        """
+        return np.squeeze(self._read_var('IGBP_Surface_Type', idx=idx))
+        
+
     # Layer info
 
     def layers(self, idx=None):

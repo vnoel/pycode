@@ -49,9 +49,12 @@ class GeoProf(object):
         "5-10 = week detection found using along track integration\n",
         "20 to 40 = Cloud detected .. increasing values represents clouds with lower chance of a being a false detection" ;
         _FillValue = '\200' ;
+        
+        shape [nprof, nalt]
         '''
         
         cm = self._read_var('CPR_Cloud_mask')
+        
         return cm
     
 
