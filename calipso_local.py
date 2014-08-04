@@ -32,6 +32,14 @@ def l1_night_files(y, m, d):
     return files
 
 
+def l1_day_files(y, m, d):
+    """
+    returns the list of available CALIOP nighttime L1 files matching a date
+    """
+    files = l1_files(y, m, d, '*ZD*')
+    return files
+
+
 def l1_file_from_orbit(y, m, d, orbit):
     """returns full path to a CALIOP L1 orbit file"""
     files = l1_files(y, m, d, '*' + orbit + '*')
