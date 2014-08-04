@@ -71,8 +71,8 @@ def l2_night_files(y, m, d, havg=5):
     return files
 
 
-def l2_day_files(y, m, d):
-    files = l2_files(y, m, d, '*ZD*')
+def l2_day_files(y, m, d, havg=5):
+    files = l2_files(y, m, d, '*ZD*', havg=havg)
     return files
 
 
