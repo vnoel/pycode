@@ -39,7 +39,7 @@ elif hostname.endswith(climserv_id) or hostname.endswith(climserv_cluster_id):
             '/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.01')
     # Test data only on Climserv
     l2dir_333 = ('/users/noel/data/Data/333mCLay/',)
-    caltrack_geoprof_dir = ('/bdd/CFMIP/OBS_LOCAL/ATRAIN_COLOC/CLOUDSAT_COLOC/CALTRACK-GEOPROF',)
+    caltrack_geoprof_dir = ('/bdd/CFMIP/OBS_LOCAL/ATRAIN_COLOC/CLOUDSAT_COLOC/CALTRACK-GEOPROF/',)
 
 # ECMWF data
 if hostname.endswith(climserv_id):

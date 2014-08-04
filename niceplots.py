@@ -112,11 +112,11 @@ def colorbar():
 
 def lon_formatter_func(x, pos):
     if x == 0:
-        return '0°'
+        return u'0°'
     elif x > 0:
-        return '%3.0f°E' % x
+        return u'%3.0f°E' % x
     else:
-        return '%3.0f°W' % -x
+        return u'%3.0f°W' % -x
 
 
 lon_formatter = FuncFormatter(lon_formatter_func)
@@ -124,11 +124,11 @@ lon_formatter = FuncFormatter(lon_formatter_func)
 
 def lat_formatter_func(x, pos):
     if x == 0:
-        return '0°'
+        return u'0°'
     elif x > 0:
-        return '%3.0f°N' % x
+        return u'%3.0f°N' % x
     else:
-        return '%3.0f°S' % -x
+        return u'%3.0f°S' % -x
 
 
 lat_formatter = FuncFormatter(lat_formatter_func)
