@@ -10,21 +10,21 @@ Based on code from M. Reverdy (ESA/FX-Conseil)
 
 Example usage:
 
->>> import lite
->>> l = lite.LITE('LITE_L1_19940910_164558_164706')
->>> print l.rawdata['latitude']
->>> l.describe()
+    >>> import lite
+    >>> l = lite.LITE('LITE_L1_19940910_164558_164706')
+    >>> print l.rawdata['latitude']
+    >>> l.describe()
 
 The script can also be called on a LITE data file for quick checks:
-~> ./lite.py LITE_L1_19940910_164558_164706 2
-Profile :  2
-Version number:  1 0
-Orbit number:  13
-ID number:  5001587
-Date:  253 16 45 58 8
-MetDate:  0 18 23 3 13
-lat, lon:  45.1957 120.065
-Number of profiles:  (572, 3000)
+    ~> ./lite.py LITE_L1_19940910_164558_164706 2
+    Profile :  2
+    Version number:  1 0
+    Orbit number:  13
+    ID number:  5001587
+    Date:  253 16 45 58 8
+    MetDate:  0 18 23 3 13
+    lat, lon:  45.1957 120.065
+    Number of profiles:  (572, 3000)
 
 '''
 
@@ -169,10 +169,7 @@ class LITE(object):
     
     def __init__(self, filename):
         
-        fid = open(filename, 'r')
-        self.rawdata = np.fromfile(fid, dtype=header, count=-1)
-        fid.close()
-        
+        self.rawdata = np.fromfile(filename, dtype=header, count=-1)
         self.altitude = np.linspace(40, -4.985, 3000)
         self.nprof = self.rawdata['profile355'].shape[0]
                 
@@ -185,7 +182,7 @@ class LITE(object):
         print 'Date: ', self.rawdata['gmtday'][0], self.rawdata['gmthour'][0], self.rawdata['gmtmin'][0], self.rawdata['gmtsec'][0], self.rawdata['gmthund'][0]
         print 'MetDate: ', self.rawdata['metday'][0], self.rawdata['methour'][0], self.rawdata['metmin'][0], self.rawdata['metsec'][0], self.rawdata['methund'][0]
         print 'lat, lon: ', self.rawdata['latitude'][0], self.rawdata['longitude'][0]
-        print 'Number of profiles: ', self.rawdata['profile355'].shape
+        print 'Number of profiles: ', self.nprof
 
 
 def main(f = 'LITE_L1_19940910_164558_164706', iprof=0):
