@@ -188,15 +188,15 @@ class LITE(object):
                 
     def describe(self, prof=0):
     
+        print 'Number of profiles in file: ', self.nprof
         print 'Profile : ', prof
-        print 'Version number: ', self.rawdata['majorversionnumber'][prof], self.rawdata['minorversionnumber'][prof]
-        print 'Orbit number: ', self.rawdata['orbitnumber'][prof]
-        print 'ID number: ', self.rawdata['idnumber'][prof]
-        print 'Raw Date: ', self.rawdata['gmtday'][prof], self.rawdata['gmthour'][prof], self.rawdata['gmtmin'][prof], self.rawdata['gmtsec'][prof], self.rawdata['gmthund'][prof]
-        print 'Datetime: ', self.datetimes[prof]
-        print 'MetDate: ', self.rawdata['metday'][prof], self.rawdata['methour'][prof], self.rawdata['metmin'][prof], self.rawdata['metsec'][prof], self.rawdata['methund'][prof]
-        print 'lat, lon: ', self.rawdata['latitude'][prof], self.rawdata['longitude'][prof]
-        print 'Number of profiles: ', self.nprof
+        print '\tVersion number: ', self.rawdata['majorversionnumber'][prof], self.rawdata['minorversionnumber'][prof]
+        print '\tOrbit number: ', self.rawdata['orbitnumber'][prof]
+        print '\tID number: ', self.rawdata['idnumber'][prof]
+        print '\tRaw Date: ', self.rawdata['gmtday'][prof], self.rawdata['gmthour'][prof], self.rawdata['gmtmin'][prof], self.rawdata['gmtsec'][prof], self.rawdata['gmthund'][prof]
+        print '\tDatetime: ', self.datetimes[prof]
+        print '\tMetDate: ', self.rawdata['metday'][prof], self.rawdata['methour'][prof], self.rawdata['metmin'][prof], self.rawdata['metsec'][prof], self.rawdata['methund'][prof]
+        print '\tlat, lon: ', self.rawdata['latitude'][prof], self.rawdata['longitude'][prof]
         
     def plot_profiles(self, wv=355):
         
