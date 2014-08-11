@@ -3,6 +3,31 @@
 
 # Created by VNoel on 2014-08-11
 
+'''
+Class to read LITE lidar data.
+
+Based on code from M. Reverdy (ESA/FX-Conseil)
+
+Example usage:
+
+>>> import lite
+>>> l = lite.LITE('LITE_L1_19940910_164558_164706')
+>>> print l.rawdata['latitude']
+>>> l.describe()
+
+The script can also be called on a LITE data file for quick checks:
+~> ./lite.py LITE_L1_19940910_164558_164706 2
+Profile :  2
+Version number:  1 0
+Orbit number:  13
+ID number:  5001587
+Date:  253 16 45 58 8
+MetDate:  0 18 23 3 13
+lat, lon:  45.1957 120.065
+Number of profiles:  (572, 3000)
+
+'''
+
 import numpy as np
 
 header = np.dtype( [ 
@@ -151,18 +176,22 @@ class LITE(object):
         self.altitude = np.linspace(40, -4.985, 3000)
         self.nprof = self.rawdata['profile355'].shape[0]
                 
+    def describe(self, prof=0):
+    
+        print 'Profile : ', prof
+        print 'Version number: ', self.rawdata['majorversionnumber'][0], self.rawdata['minorversionnumber'][0]
+        print 'Orbit number: ', self.rawdata['orbitnumber'][0]
+        print 'ID number: ', self.rawdata['idnumber'][0]
+        print 'Date: ', self.rawdata['gmtday'][0], self.rawdata['gmthour'][0], self.rawdata['gmtmin'][0], self.rawdata['gmtsec'][0], self.rawdata['gmthund'][0]
+        print 'MetDate: ', self.rawdata['metday'][0], self.rawdata['methour'][0], self.rawdata['metmin'][0], self.rawdata['metsec'][0], self.rawdata['methund'][0]
+        print 'lat, lon: ', self.rawdata['latitude'][0], self.rawdata['longitude'][0]
+        print 'Number of profiles: ', self.rawdata['profile355'].shape
 
-def main(f = 'LITE_L1_19940910_164558_164706'):
+
+def main(f = 'LITE_L1_19940910_164558_164706', iprof=0):
 
     l = LITE(f)
-    print 'First profile : '
-    print 'Version number: ', l.rawdata['majorversionnumber'][0], l.rawdata['minorversionnumber'][0]
-    print 'Orbit number: ', l.rawdata['orbitnumber'][0]
-    print 'ID number: ', l.rawdata['idnumber'][0]
-    print 'Date: ', l.rawdata['gmtday'][0], l.rawdata['gmthour'][0], l.rawdata['gmtmin'][0], l.rawdata['gmtsec'][0], l.rawdata['gmthund'][0]
-    print 'MetDate: ', l.rawdata['metday'][0], l.rawdata['methour'][0], l.rawdata['metmin'][0], l.rawdata['metsec'][0], l.rawdata['methund'][0]
-    print 'lat, lon: ', l.rawdata['latitude'][0], l.rawdata['longitude'][0]
-    print 'Number of profiles: ', l.rawdata['profile355'].shape
+    l.describe(iprof)
     # import matplotlib.pyplot as plt
     # plt.pcolormesh(l.rawdata['latitude'], l.altitude, l.rawdata['profile355'].T)
     # plt.show()
