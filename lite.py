@@ -29,6 +29,7 @@ The script can also be called on a LITE data file for quick checks:
 '''
 
 import numpy as np
+from datetime import datetime, timedelta
 
 header = np.dtype( [ 
                 ('syncvalue', '>i2'), 
@@ -172,26 +173,56 @@ class LITE(object):
         self.rawdata = np.fromfile(filename, dtype=header, count=-1)
         self.altitude = np.linspace(40, -4.985, 3000)
         self.nprof = self.rawdata['profile355'].shape[0]
+        self.photons = dict()
+        self.latitude = self.rawdata['latitude']
+        self.longitude = self.rawdata['longitude']
+        self.photons[355] = self.rawdata['profile355']
+        self.photons[532] = self.rawdata['profile532']
+        self.photons[1064] = self.rawdata['profile064']
+        
+        self.datetimes = []
+        for i in np.r_[0:self.nprof]:
+            date = datetime(1994,1,1) + timedelta(days=self.rawdata['gmtday'][i]-1)
+            fulldate = datetime(date.year, date.month, date.day, self.rawdata['gmthour'][i], self.rawdata['gmtmin'][i], self.rawdata['gmtsec'][i], self.rawdata['gmthund'][i]*10000)
+            self.datetimes.append(fulldate)
                 
     def describe(self, prof=0):
     
         print 'Profile : ', prof
-        print 'Version number: ', self.rawdata['majorversionnumber'][0], self.rawdata['minorversionnumber'][0]
-        print 'Orbit number: ', self.rawdata['orbitnumber'][0]
-        print 'ID number: ', self.rawdata['idnumber'][0]
-        print 'Date: ', self.rawdata['gmtday'][0], self.rawdata['gmthour'][0], self.rawdata['gmtmin'][0], self.rawdata['gmtsec'][0], self.rawdata['gmthund'][0]
-        print 'MetDate: ', self.rawdata['metday'][0], self.rawdata['methour'][0], self.rawdata['metmin'][0], self.rawdata['metsec'][0], self.rawdata['methund'][0]
-        print 'lat, lon: ', self.rawdata['latitude'][0], self.rawdata['longitude'][0]
+        print 'Version number: ', self.rawdata['majorversionnumber'][prof], self.rawdata['minorversionnumber'][prof]
+        print 'Orbit number: ', self.rawdata['orbitnumber'][prof]
+        print 'ID number: ', self.rawdata['idnumber'][prof]
+        print 'Raw Date: ', self.rawdata['gmtday'][prof], self.rawdata['gmthour'][prof], self.rawdata['gmtmin'][prof], self.rawdata['gmtsec'][prof], self.rawdata['gmthund'][prof]
+        print 'Datetime: ', self.datetimes[prof]
+        print 'MetDate: ', self.rawdata['metday'][prof], self.rawdata['methour'][prof], self.rawdata['metmin'][prof], self.rawdata['metsec'][prof], self.rawdata['methund'][prof]
+        print 'lat, lon: ', self.rawdata['latitude'][prof], self.rawdata['longitude'][prof]
         print 'Number of profiles: ', self.nprof
+        
+    def plot_profiles(self, wv=355):
+        
+        import matplotlib.pyplot as plt
+        import matplotlib.dates as mdates
+        
+        ndates = mdates.date2num(self.datetimes)
+        fig = plt.figure(figsize=[15,5])
+        ax = plt.gca()
+        plt.pcolormesh(ndates, self.altitude, self.photons[wv].T)
+        ax.xaxis.axis_date()
+        plt.ylabel('Altitude')
+        fig.autofmt_xdate()
+        
+        cb = plt.colorbar()
+        cb.set_label('Photon counts')
+        plt.show()
 
 
-def main(f = 'LITE_L1_19940910_164558_164706', iprof=0):
+def main(f='LITE_L1_19940910_164558_164706', iprof=0):
 
+    iprof = int(iprof)
+    
     l = LITE(f)
     l.describe(iprof)
-    # import matplotlib.pyplot as plt
-    # plt.pcolormesh(l.rawdata['latitude'], l.altitude, l.rawdata['profile355'].T)
-    # plt.show()
+    l.plot_profiles(355)
 
 
 if __name__ == '__main__':
