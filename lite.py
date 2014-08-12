@@ -201,7 +201,7 @@ class LITE(object):
         for data in self.photons:
             reference = np.mean(self.photons[data][:,idx], axis=1)
             cal_factor = mol_atb / reference
-            self.photons[data] = self.photons[data] * cal_factor
+            self.photons[data] = (self.photons[data].T * cal_factor).T
         
     def vertical_downsample(self, new_z_step):
         '''
