@@ -199,7 +199,7 @@ class LITE(object):
         
         idx = (self.altitude >= altcal[0]) & (self.altitude < altcal[1])
         for data in self.photons:
-            reference = np.mean(self.photons[data], axis=1)
+            reference = np.mean(self.photons[data][:,idx], axis=1)
             cal_factor = mol_atb / reference
             self.photons[data] = self.photons[data] * cal_factor
         
