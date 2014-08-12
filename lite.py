@@ -170,21 +170,51 @@ class LITE(object):
     
     def __init__(self, filename):
         
-        self.rawdata = np.fromfile(filename, dtype=header, count=-1)
-        self.altitude = np.linspace(40, -4.985, 3000)
+        fid = open(filename, 'r')
+        self.rawdata = np.fromfile(fid, dtype=header, count=-1)
+        fid.close()
+        self.rawaltitude = np.linspace(40, -4.985, 3000)
+        self.altitude = self.rawaltitude[::-1]
         self.nprof = self.rawdata['profile355'].shape[0]
         self.photons = dict()
         self.latitude = self.rawdata['latitude']
         self.longitude = self.rawdata['longitude']
-        self.photons[355] = self.rawdata['profile355']
-        self.photons[532] = self.rawdata['profile532']
-        self.photons[1064] = self.rawdata['profile064']
+        self.photons[355] = self.rawdata['profile355'][:,::-1]
+        self.photons[532] = self.rawdata['profile532'][:,::-1]
+        self.photons[1064] = self.rawdata['profile064'][:,::-1]
         
         self.datetimes = []
         for i in np.r_[0:self.nprof]:
             date = datetime(1994,1,1) + timedelta(days=self.rawdata['gmtday'][i]-1)
             fulldate = datetime(date.year, date.month, date.day, self.rawdata['gmthour'][i], self.rawdata['gmtmin'][i], self.rawdata['gmtsec'][i], self.rawdata['gmthund'][i]*10000)
             self.datetimes.append(fulldate)
+                
+    def calibrate_atb(self, mol_atb, altcal=[20,22]):
+
+        '''
+        calibrate the photon counts as ATB, by bringing the average beween altcal[0] and altcal[1] to the values in mol_atb
+        mol_atb is either a single value or a vector with length nprof
+        '''
+        
+        pass
+        
+    def vertical_downsample(self, new_z_step):
+        '''
+        vertically downsample the photon counts. E.g go from the initial resolution of 30m to 100m.
+        Does not upsample (e.g. resolution of 10m)
+        Correctly takes into account partial boundaries between origin and target binsizes.
+        
+        new_z_step in km
+        '''
+        
+        assert new_z_step > (self.altitude[1] - self.altitude[0]), 'new_z_step cannot be smaller than 30m'
+        z2 = np.r_[-1.:40:new_z_step]
+        for data in self.photons:
+            data2 = np.zeros([self.photons[data].shape[0], z2.shape[0]])
+            for i in np.r_[0:data2.shape[0]]:
+                data2[i,:] = _downsample_profile(self.altitude, self.photons[data][i,:], z2)
+            self.photons[data] = data2
+        self.altitude = z2    
                 
     def describe(self, prof=0):
     
@@ -229,4 +259,22 @@ if __name__ == '__main__':
     import plac
     plac.call(main)
 
+
+# utility functions
+
+def _downsample_profile(z, prof, z2):
+    prof2 = np.zeros_like(z2)
+    for i in np.r_[0:z2.shape[0]-1]:
+        idx = np.where((z >= z2[i]) & (z < z2[i+1]))[0]
+        weights = np.ones_like(idx)
+        # if the last point is not fully inside the new bin, weight it down
+        if z[idx[-1]] < z2[i+1]:
+            # print z[idx[-1]], ' < ',  z2[i+1], ' -> weighting down the last'
+            weights[-1] = (z2[i+1] - z[idx[-1]]) / (z[idx[-1]] - z[idx[-2]])
+        if z[idx[0]] > z2[i]:
+            # print z[idx[0]], ' > ' , z2[i], ' -> adding a bit of below'
+            idx = np.append(idx, idx[0]-1)
+            weights = np.append(weights, (z[idx[0]] - z2[i]) / z[idx[0]-1])
+        prof2[i] = np.average(prof[idx], weights=weights)
+    return prof2
 
