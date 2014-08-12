@@ -179,6 +179,7 @@ class LITE(object):
         self.photons = dict()
         self.latitude = self.rawdata['latitude']
         self.longitude = self.rawdata['longitude']
+        # dimensions [nprof, altitude]
         self.photons[355] = self.rawdata['profile355'][:,::-1]
         self.photons[532] = self.rawdata['profile532'][:,::-1]
         self.photons[1064] = self.rawdata['profile064'][:,::-1]
@@ -196,7 +197,11 @@ class LITE(object):
         mol_atb is either a single value or a vector with length nprof
         '''
         
-        pass
+        idx = (self.altitude >= altcal[0]) & (self.altitude < altcal[1])
+        for data in self.photons:
+            reference = np.mean(self.photons[data], axis=1)
+            cal_factor = mol_atb / reference
+            self.photons[data] = self.photons[data] * cal_factor
         
     def vertical_downsample(self, new_z_step):
         '''
