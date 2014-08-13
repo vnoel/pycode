@@ -40,10 +40,6 @@ Backscatter fields ("atb") are initially empty. To fill them, they need to be ca
 This will calibrate the atb at 532nm by bringing the average value between 20 and 22 km to 1e-4.
 Instead of a single value, a vector of calibration values can be passed (length = number of profiles in the file).
 
-For convenience, backscatter can also be calibrated from a vector of molecular backscatter values
-
-    >>> l.calibrate_atb_from_molecular(532, average_mol_between_20_and_22, altcal=[20,22])
-
 '''
 
 import numpy as np
