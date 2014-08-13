@@ -6,6 +6,9 @@
 '''
 Class to read LITE lidar data.
 
+LITE = Lidar In-space Technology Experiment
+http://www-lite.larc.nasa.gov
+
 Based on code from M. Reverdy (ESA/FX-Conseil)
 
 Example usage:
@@ -16,6 +19,7 @@ Example usage:
     >>> l.describe()
 
 The script can also be called on a LITE data file for quick checks:
+
     ~> ./lite.py LITE_L1_19940910_164558_164706 2
     Profile :  2
     Version number:  1 0
@@ -25,9 +29,11 @@ The script can also be called on a LITE data file for quick checks:
     MetDate:  0 18 23 3 13
     lat, lon:  45.1957 120.065
     Number of profiles:  (572, 3000)
-    
-Initially, only the photon counts are available. Backscatter fields ("atb") are empty after reading a LITE data file. 
-To fill them, they need to be calibrated:
+
+After reading, all contents of the LITE file are available in l.rawdata[].    
+The photon counts are in fields l.rawdata['profile355'], l.rawdata['profile532'] and l.rawdata['profile064']
+
+Backscatter fields ("atb") are initially empty. To fill them, they need to be calibrated:
 
     >>> l.calibrate_atb_to(532, 1e-4, between_altitudes=[20,22])
     
