@@ -84,8 +84,8 @@ def l2_day_files(y, m, d, havg=5):
     return files
 
 
-def l2_file_from_orbit(y, m, d, orbit):
-    files = l2_files(y, m, d, '*' + orbit + '*')
+def l2_file_from_orbit(y, m, d, orbit, havg=5):
+    files = l2_files(y, m, d, '*' + orbit + '*', havg=havg)
     if not files:
         return None
     return files[0]
