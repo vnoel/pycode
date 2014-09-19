@@ -29,7 +29,7 @@ myfont = {
 elev_cmap = 'RdBu_r'
 
 
-def savefig(figname, author='VNoel, LMD/CNRS'):
+def savefig(figname, author='VNoel, LMD/CNRS', **kwargs):
     """
     Save figure
     if format is png or pdf (based on the extension), save
@@ -60,7 +60,7 @@ def savefig(figname, author='VNoel, LMD/CNRS'):
 
         from PIL import Image, PngImagePlugin
 
-        plt.savefig(figname)
+        plt.savefig(figname, **kwargs)
         im = Image.open(figname)
 
         meta = PngImagePlugin.PngInfo()
