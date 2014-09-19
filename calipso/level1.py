@@ -207,9 +207,11 @@ class Cal1(_Cal):
         # lifted from http://code.ohloh.net/file?fid=pMlnajrQ2omfIKEwb6bcZlejO1U
         
         import subprocess
+        import os
         
+        FNULL = open(os.devnull, 'w')
         command = 'hdp dumpvd -d -n metadata -f Lidar_Data_Altitudes ' + self.filename
-        dump = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()[0]
+        dump = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=FNULL).communicate()[0]
         alt = np.array(dump.split(), dtype='float32')
         
         return alt
