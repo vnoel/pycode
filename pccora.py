@@ -127,7 +127,7 @@ def pccora_read(file):
 
     ## HEADER
     
-    fid = open(file, 'r')
+    fid = open(file, 'rb')
     
     head = np.fromfile(fid, dtype=pccoraheader, count=1)
     
