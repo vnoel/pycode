@@ -8,6 +8,7 @@ Invalid values are masked in the output
 
 This module can be called to print information out of a PCCORA file.
 VNoel 2012 
+Contributions by Richard Querel 
 
 dependencies: numpy, plac to run the module standalone (easy to remove)
 '''
