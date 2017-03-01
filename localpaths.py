@@ -31,7 +31,9 @@ if hostname.endswith(icare_id):
     caltrack_geoprof_dir = ('/DATA/LIENS/CALIOP/CALTRACK-5km_CS-2B-GEOPROF/',)
 elif hostname.endswith(climserv_id) or hostname.endswith(climserv_cluster_id):
     # CLIMSERV
-    l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30',
+    l1dir = ('/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v4.10',
+             '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v4.00',
+             '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.30',
              '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.02',
              '/bdd/CALIPSO/Lidar_L1/CAL_LID_L1.v3.01')
     l2dir = ('/bdd/CALIPSO/Lidar_L2/05kmCLay.v3.30',
