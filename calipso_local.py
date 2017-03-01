@@ -9,18 +9,32 @@ Utility functions to list available CALIOP files on local host
 
 import os
 import glob
-from localpaths import l1dir, l2dir, l2dir_333
+from localpaths import l1dir, l2dir, l2adir, l2dir_333
 
-def l1_files(y, m, d, mask='*'):
+def l1_files(y, m, d=None, mask='*'):
     """
     returns the list of available CALIOP L1 files matching a date and mask
+    if no day is passed, a list contanining all files for the months is returned
     """
-    goodpath = '/'
-    for l1d in l1dir:
-        calpath = l1d + '/%04d/%04d_%02d_%02d/' % (y, y, m, d)
-        if os.path.isdir(calpath):
-            goodpath = calpath
-    files = glob.glob(goodpath + mask + '.hdf')
+    
+    if d is None:
+        days = range(1, 32)
+    elif len(d)==1:
+        days = [d]
+        
+    files = []
+    for day in days:
+        found_path = None
+        for l1d in l1dir:
+            calpath = l1d + '/%04d/%04d_%02d_%02d/' % (y, y, m, day)
+            if os.path.isdir(calpath):
+                found_path = calpath
+                break
+        if not found_path:
+            continue
+        dayfiles = glob.glob(found_path + mask + '.hdf')
+        files.extend(dayfiles)
+    
     return files
 
 
@@ -67,6 +81,8 @@ def l2_files(y, m, d, mask='*', havg=5):
             goodpath = calpath
     fullmask = goodpath + mask + '.hdf'
     files = glob.glob(fullmask)
+    if len(files)==0:
+        print('l2_files : 0 files found, looking in ', fullmask)
     return files
     
 
