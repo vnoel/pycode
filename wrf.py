@@ -32,6 +32,7 @@ def _remap (var, lon, lat, lonorb, latorb):
         var2[:,i] = var[:,imin,jmin]
 
     return var2.T
+    
 
 class wrf(object):
     
@@ -72,6 +73,7 @@ class wrf(object):
         p = self.nc.variables['P_TOP'][it]
         return p
     
+        
     def pressure(self, it=0, pascals=False, on_orbit=None):
         '''
         Lit le champ de pression du fichier WRF. 
