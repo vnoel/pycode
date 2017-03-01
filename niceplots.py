@@ -15,9 +15,11 @@ import matplotlib.collections as collections
 from matplotlib.ticker import FuncFormatter
 import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
+import matplotlib.colors as mc
 import numpy as np
 import os
 
+# this should be done better
 homedir = os.path.expanduser('~')
 mundofont = homedir + '/.fonts/MundoSansStd.otf'
 mundofontbold = homedir + '/.fonts/MundoSansStd-Med.otf'
@@ -27,6 +29,8 @@ myfont = {
     'big': fm.FontProperties(fname=mundofontbold, size=18)
 }
 elev_cmap = 'RdBu_r'
+# this is even worse
+parula = mc.ListedColormap(np.loadtxt(homedir + '/pycode/staticdata/parula.txt'))
 
 
 def savefig(figname, author='VNoel, LMD/CNRS', **kwargs):
@@ -267,10 +271,12 @@ def shade_dates_areas(ax, dates, areas, color='grey'):
     shade_x_areas(ax, x, areas, color=color)
 
 
-def xaxis_day(ax):
+def xaxis_day(ax, step=6):
     ax.xaxis.axis_date()
 
-    ax.xaxis.set_minor_locator(mdates.HourLocator(12))
+    hours = np.r_[step:24:step]
+
+    ax.xaxis.set_minor_locator(mdates.HourLocator(hours))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter('%H'))
     ax.xaxis.set_major_locator(mdates.DayLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b-%d'))
