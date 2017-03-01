@@ -19,7 +19,7 @@ def l1_files(y, m, d=None, mask='*'):
     
     if d is None:
         days = range(1, 32)
-    elif len(d)==1:
+    elif not isinstance(d, list):
         days = [d]
         
     files = []
