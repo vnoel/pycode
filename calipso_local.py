@@ -34,6 +34,7 @@ def l1_files(y, m, d=None, mask='*'):
             continue
         dayfiles = glob.glob(found_path + mask + '.hdf')
         files.extend(dayfiles)
+    files.sort()
     
     return files
 
