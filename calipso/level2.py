@@ -78,8 +78,7 @@ class Cal2(_Cal):
         if self.havg < 1:
             raise BaseException('333m file == no boundaries')
         time = self._read_var('Profile_Time')
-        time0, time1 = time[:,0], time[:,-1]
-        return time0, time1
+        return time[:,0], time[:,2]
     
 
     def utc_time(self, idx=None):
@@ -191,6 +190,7 @@ class Cal2(_Cal):
         IGBP_Surface_Type:valid_range = "1....18" ;
         IGBP_Surface_Type:fillvalue = '\367' ;
         IGBP_Surface_Type:range_value = "evergreen needleleaf forest, evergreen broadleaf forest, deciduous needleleaf forest, deciduous broadleaf forest, mixed forest, closed shrublands, open shrublands,woody savannas, savannas, grasslands, permanent wetlands, croplands, urban and built-up,cropland/natural vegetation mosaic, snow and ice, barren or sparsely vegetated, water bodies, tundra" ;
+        water = 17
         """
         return np.squeeze(self._read_var('IGBP_Surface_Type', idx=idx))
         
@@ -229,10 +229,17 @@ class Cal2(_Cal):
 
     def midlayer_temperature(self, idx=None):
         """
-        Returns the midlayer temperature by layer, in km
+        Returns the midlayer temperature by layer, in degrees C
         shape [nprof, nlaymax]
         """
         return self._read_var('Midlayer_Temperature', idx=idx)
+
+    def layer_base_temperature(self, idx=None):
+        """
+        Returns the layer base temperature by layer, in degrees C
+        shape [nprof, nlaymax]
+        """
+        return self._read_var('Layer_Base_Temperature', idx=idx)
 
     def flag(self, idx=None):
         """
